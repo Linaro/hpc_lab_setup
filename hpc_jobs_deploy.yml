@@ -2,6 +2,17 @@
 
 - hosts: jenkins
   remote_user: root
+  vars:
+          jslave_list:
+                  - "jslave-d03-openhpc"
+                  - "jslave-d03-benchmark"
+                  - "jslave-d05-openhpc" 
+                  - "jslave-d05-benchmark"
+                  - "jslave-tx2-openhpc"
+                  - "jslave-tx2-benchmark"
+                  - "jslave-qdc-openhpc"
+                  - "jslave-qdc-benchmark"
+
   tasks:
           - name: Check that Jenkins master has an SSH key
             stat:
@@ -42,15 +53,42 @@
           - include_tasks: ./tasks/create_slaves.yml
             vars:
                     master_sshkey: "{{ master_key['content'] | b64decode }}"
-                    jslave_list:
-                            - "jslave-d03-openhpc"
-                            - "jslave-d03-benchmark"
-                            - "jslave-d05-openhpc" 
-                            - "jslave-d05-benchmark"
-                            - "jslave-tx2-openhpc"
-                            - "jslave-tx2-benchmark"
-                            - "jslave-qdc-openhpc"
-                            - "jslave-qdc-benchmark"
+
+          - include_vars:
+                  file: ./vars/jenkins_cred.yml.secret
+                  name: jenkins_creds
+
+          - name: create credentials in Jenkins for those slaves!
+            jenkins_script:
+                    user: "{{ jenkins_creds.user }}"
+                    password: "{{ jenkins_creds.password }}"
+                    url: "{{ jenkins_creds.url }}"
+                    validate_certs: no
+                    script: "{{ add_ssh_creds }}" 
+                    args:
+                            username: "{{ item }}"
+            with_list: "{{ jslave_list }}"
+            vars:
+                    add_ssh_creds: |
+                        import jenkins.model.*
+                        import com.cloudbees.plugins.credentials.*
+                        import com.cloudbees.plugins.credentials.common.*
+                        import com.cloudbees.plugins.credentials.domains.*
+                        import com.cloudbees.jenkins.plugins.sshcredentials.impl.*
+                        import hudson.plugins.sshslaves.*;
+                        global_domain = Domain.global()
+                        credentials_store =
+                        Jenkins.instance.getExtensionList(
+                        	'com.cloudbees.plugins.credentials.SystemCredentialsProvider')[0].getStore()
+                        credentials = new BasicSSHUserPrivateKey(
+                               	 CredentialsScope.GLOBAL,
+                               	 "$username",
+                               	 "$username",
+                               	 new BasicSSHUserPrivateKey.UsersPrivateKeySource(),
+                               	 "",
+                                 "$username"
+                               	 )
+                        credentials_store.addCredentials(global_domain, credentials)
 
           - name: Install python3, pip and python2 deps
             apt:
