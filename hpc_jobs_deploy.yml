@@ -90,6 +90,35 @@
                                	 )
                         credentials_store.addCredentials(global_domain, credentials)
 
+          - name: create credentials in Jenkins for those slaves!
+            jenkins_script:
+                    user: "{{ jenkins_creds.user }}"
+                    password: "{{ jenkins_creds.password }}"
+                    url: "{{ jenkins_creds.url }}"
+                    validate_certs: no
+                    script: "{{ add_ssh_slave }}" 
+                    args:
+                            username: "{{ item }}"
+            with_list: "{{ jslave_list }}"
+            vars:
+                    add_ssh_slave: |
+                        import hudson.model.Node.Mode
+                        import hudson.slaves.*
+                        import jenkins.model.Jenkins
+                        import hudson.plugins.sshslaves.SSHLauncher
+                        String credentialID = "$username"
+                        String agentHome = "/home/$username"
+                        DumbSlave dumb = new DumbSlave("$username", // Agent name, usually matches the host computer's machine name
+                                "$username", // Agent description
+                                agentHome, // Workspace on the agent's computer
+                                "1", // Number of executors
+                                Mode.EXCLUSIVE, // "Usage" field, EXCLUSIVE is "only tied to node", NORMAL is "any"
+                                "$username", // Labels
+                                new SSHLauncher("localhost", 22, SSHLauncher.lookupSystemCredentials(credentialID), "", null, null, "", "", 60, 3, 15),
+                                RetentionStrategy.INSTANCE) // Is the "Availability" field and INSTANCE means "Always"
+                        Jenkins.instance.addNode(dumb)
+                        println agentHome
+
           - name: Install python3, pip and python2 deps
             apt:
                     name: "{{ item }}"
