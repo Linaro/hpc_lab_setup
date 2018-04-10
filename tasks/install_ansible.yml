@@ -1,0 +1,20 @@
+---
+
+- name: Download dirmngr dependency for key download on Debian
+  apt:
+          name: dirmngr
+          update_cache: yes
+
+- name: Get the PPA key to use the Ansible repo
+  shell: "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367"
+
+- name: Add repository for Ansible (PPA) on Debian
+  apt_repository:
+    repo: deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main
+    state: present
+    filename: ansible
+
+- name: Apt install Ansible
+  apt:
+          name: ansible
+          update_cache: yes

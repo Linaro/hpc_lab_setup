@@ -1,0 +1,99 @@
+---
+
+- hosts: jenkins
+  remote_user: root
+  tasks:
+          - name: Check that Jenkins master has an SSH key
+            stat:
+                path: "/var/lib/jenkins/.ssh/id_rsa.pub"
+            register: sshkey
+
+          - name: Create the Jenkins master SSH key
+            shell: runuser -l jenkins -c "ssh-keygen -f /var/lib/jenkins/.ssh/id_rsa -t rsa -N ''"
+            when: sshkey.stat.exists == False
+
+          - name: Lookup executes locally.... Let's use slurp then
+            slurp:
+                src: /var/lib/jenkins/.ssh/id_rsa.pub
+            register: master_key
+
+          - name: Add the Jenkins master SSH key to itself
+            authorized_key:
+                    user: jenkins
+                    state: present
+                    key: "{{ master_key['content'] | b64decode }}" 
+
+          - name: Ensure script dir exists
+            file: path="/var/lib/jenkins/scripts" state=directory
+          
+          - name: Copy the playbook maker to Jenkins Master's script dir
+            copy:
+                    src: "files/provisioning.py"
+                    dest: "/var/lib/jenkins/scripts/"
+                    owner: root
+                    group: root
+                    mode: u=rx,g=rx,o=rwx
+
+          - name: Create jenkins_slave group to keep them from unionizing
+            group:
+                    name: jenkins_slave
+                    state: present
+
+          - include_tasks: ./tasks/create_slaves.yml
+            vars:
+                    master_sshkey: "{{ master_key['content'] | b64decode }}"
+                    jslave_list:
+                            - "jslave-d03-openhpc"
+                            - "jslave-d03-benchmark"
+                            - "jslave-d05-openhpc" 
+                            - "jslave-d05-benchmark"
+                            - "jslave-tx2-openhpc"
+                            - "jslave-tx2-benchmark"
+                            - "jslave-qdc-openhpc"
+                            - "jslave-qdc-benchmark"
+
+          - name: Install python3, pip and python2 deps
+            apt:
+                    name: "{{ item }}"
+                    state: installed
+                    update_cache: yes
+            with_items:
+                    - python3
+                    - python3-pip
+                    - python-requests
+                    - python-future
+
+          - name: Install Jenkins Job Builder
+            shell: "pip3 install jenkins-job-builder"
+
+          - name: Ensure JJB config file dir is there
+            file: 
+                path: /etc/jenkins_jobs
+                state: directory
+
+          - name: Copy JJB config file
+            copy:
+                src: "files/jenkins_jobs.ini.secret"
+                dest: "/etc/jenkins_jobs/jenkins_jobs.ini"
+
+          - name: Install Ansible
+            include_tasks: ./tasks/install_ansible.yml
+
+          - name: Ensure Ansible roles path is there
+            file: 
+                path: "/etc/ansible/roles" 
+                state: directory
+
+          - name: Install provisioning role
+            git:
+                repo: https://github.com/BaptisteGerondeau/ansible-role-mr-provisioner.git
+                dest: "/etc/ansible/roles/ansible-role-provision-mr-provisioner"
+                version: "bger-hpc"
+
+          - name: Copy yaml job definition(s)
+            copy:
+                src: "files/provisioning_job.yml"
+                dest: "/var/lib/jenkins/scripts/"
+
+          - name: Create jobs in Jenkins
+            shell: "jenkins-jobs update /var/lib/jenkins/scripts/*.yml"

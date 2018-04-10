@@ -1,0 +1,75 @@
+ - job:
+         name: machine_mrp_provision
+         description: "This is a job for Provisioning a Machine using MrP"
+         project-type: freestyle
+         block-downstream: false
+         auth-token: "provisioningtoken"
+         label: "local-slave"
+         parameters:
+                 - string:
+                         name: machine_name
+                         default: ''
+                         description: 'The MrP name of the machine to provision'
+                 - string:
+                         name: provisioner_url
+                         default: ''
+                         description: 'The url, in the form "http://XXX.XXX.XXX.XXX:XXXX" of MrP'
+                 - string:
+                         name: provisioner_token
+                         default: ''
+                         description: 'The token for access to MrPs API'
+                 - string:
+                         name: kernel_desc
+                         default: ''
+                         description: 'The exact description in MrP of the kernel to be used'
+                 - string:
+                         name: initrd_desc
+                         default: ''
+                         description: 'The exact description in MrP of the initrd to be used'
+                 - string:
+                         name: preseed_name
+                         default: ''
+                         description: 'The exact name in MrP of the preseed to be used'
+                 - string:
+                         name: preseed_type
+                         default: 'preseed'
+                         description: 'The type of the preseed to be used (preseed or kickstart)'
+                 - string:
+                         name: machine_arch
+                         default: ''
+                         description: 'The name of the architecture in MrP of the machine to be provisioned'
+                 - string:
+                         name: machine_subarch
+                         default: ''
+                         description: 'The name of the subarchitecture in MrP (bootloader)'
+                 - string:
+                         name: kernel_opts
+                         default: ''
+                         description: 'The arguments to be passed to the kernel'
+                 - string:
+                         name: kernel_path
+                         default: '/dev/null'
+                         description: 'The path to the kernel file to be (non compulsory) uploaded'
+                 - string:
+                         name: initrd_path
+                         default: '/dev/null'
+                         description: 'The path to the initrd file to be (non compulsory) uploaded'
+                 - string:
+                         name: preseed_path
+                         default: '/dev/null'
+                         description: 'The path to the preseed file to be (non compulsory) uploaded'
+         builders:
+                 - shell: |
+                         cd ${WORKSPACE}
+                         echo "Provisioning ${machine_name} with ${kernel_desc} and ${intrd_desc}"
+                         DIR_NAME=${machine_name}$(date +%s)
+                         mkdir ${DIR_NAME}
+                         cd ${DIR_NAME}
+                         ${JENKINS_HOME}/scripts/provisioning.py "${PWD}" "${machine_name}" "${provisioner_url}" "${provisioner_token}" "${kernel_desc}" "${initrd_desc}" "${preseed_name}" "${preseed_type}" "${machine_arch}" "${machine_subarch}" "${kernel_opts}" "${kernel_path}" "${initrd_path}" "${preseed_path}"
+                         if [ ! -f hosts ]; then
+                                exit 1
+                         fi
+                         if [ ! -f provisioning${machine_name}.yml ]; then
+                                exit 1
+                         fi
+                         ansible-playbook provisioning${machine_name}.yml -i hosts

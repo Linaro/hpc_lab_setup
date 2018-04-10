@@ -1,0 +1,39 @@
+---
+
+- name: Create the Jenkins slaves
+  user:
+          name: "{{ item }}"
+          shell: "/bin/bash"
+          generate_ssh_key: yes
+          group: "jenkins_slave"
+  with_list: "{{ jslave_list }}"
+
+- name: Slurp up the ssh_keys
+  fetch:
+      src: "/home/{{ item }}/.ssh/id_rsa.pub"
+      dest: "/tmp/{{ item }}.sshkey"
+      flat: yes
+  with_list: "{{ jslave_list }}"
+
+- name: Add Master Jenkins' ssh key to the slaves authorized list
+  authorized_key:
+          user: "{{ item }}"
+          state: present
+          key: "{{ master_sshkey }}" 
+  with_list: "{{ jslave_list }}"
+
+- name: Add their own key to their authorized list
+  authorized_key:
+          user: "{{ item }}"
+          state: present
+          key: "{{ lookup('file', '/tmp/{{ item }}.sshkey') }}"
+  with_list: "{{ jslave_list }}"
+
+- name: Copy the playbook maker script to their home dir
+  copy:
+          src: "../files/provisioning.py"
+          dest: "/home/{{ item }}/"
+          owner: "{{ item }}"
+          group: "jenkins_slave"
+          mode: u=rx,g=rx,o=rwx 
+  with_list: "{{ jslave_list }}"
