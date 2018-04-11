@@ -2,9 +2,9 @@
          name: machine_mrp_provision
          description: "This is a job for Provisioning a Machine using MrP"
          project-type: freestyle
+         concurrent: true
          block-downstream: false
          auth-token: "provisioningtoken"
-         label: "local-slave"
          parameters:
                  - string:
                          name: machine_name
