@@ -59,7 +59,10 @@ class ProvisioningJobMaker(object):
       - name: Wait for host for 3600 seconds, but only start checking after 60 seconds
         wait_for_connection:
               delay: 60
-              timeout: 3600"""
+              timeout: 3600
+
+      - name: If the host's SSH is up, we can wipe the root password
+        shell: 'passwd -l root'"""
 
         playbook_template = jinja2.Template(playbook)
         rendered_playbook = playbook_template.render({
