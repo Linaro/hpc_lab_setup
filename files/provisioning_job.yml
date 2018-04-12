@@ -48,15 +48,15 @@
                          description: 'The arguments to be passed to the kernel'
                  - string:
                          name: kernel_path
-                         default: '/dev/null'
+                         default: ''
                          description: 'The path to the kernel file to be (non compulsory) uploaded'
                  - string:
                          name: initrd_path
-                         default: '/dev/null'
+                         default: ''
                          description: 'The path to the initrd file to be (non compulsory) uploaded'
                  - string:
                          name: preseed_path
-                         default: '/dev/null'
+                         default: ''
                          description: 'The path to the preseed file to be (non compulsory) uploaded'
          builders:
                  - shell: |
