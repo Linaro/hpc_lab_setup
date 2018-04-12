@@ -6,6 +6,10 @@
          block-downstream: false
          auth-token: "provisioningtoken"
          parameters:
+                 - node:
+                         name: node
+                         default: ''
+                         description: 'Node with which to provision the machine'
                  - string:
                          name: machine_name
                          default: ''

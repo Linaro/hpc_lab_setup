@@ -1,0 +1,15 @@
+---
+
+- hosts: jenkins
+  gather_facts: yes
+  remote_user: root
+  tasks:
+          - include_vars:
+                file: ./vars/jslave_tokens.yml.secret
+
+          - name: Put the tokens!
+            lineinfile:
+                path: "/home/{{ item.jslave }}/mrp_token"
+                create: yes
+                line: "{{ item.token }}"
+            with_items: "{{ jslave_tokens }}"
