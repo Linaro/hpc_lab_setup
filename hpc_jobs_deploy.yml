@@ -12,7 +12,6 @@
                   - "jslave-tx2-benchmark"
                   - "jslave-qdc-openhpc"
                   - "jslave-qdc-benchmark"
-                  - "jslave-coordinator"
 
   tasks:
           - name: Check that Jenkins master has an SSH key
@@ -122,6 +121,22 @@
                                 RetentionStrategy.INSTANCE) // Is the "Availability" field and INSTANCE means "Always"
                         Jenkins.instance.addNode(dumb)
                         println agentHome
+
+          - name: Set the master's number of executors
+            jenkins_script:
+                    user: "{{ jenkins_creds.user }}"
+                    password: "{{ jenkins_creds.password }}"
+                    url: "{{ jenkins_creds.url }}"
+                    validate_certs: no
+                    script: "{{ add_master_executors }}" 
+                    args:
+                            masterexec: "30" #24 + margin
+            vars:
+                    add_master_executors: |
+                        import hudson.model.*;
+                        import jenkins.model.*;
+                        Jenkins.getInstance().setNumExecutors(Integer.parseInt("$masterexec"))
+
 
           - name: Install python3, pip and python2 deps
             apt:

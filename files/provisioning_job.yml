@@ -15,14 +15,6 @@
                          default: ''
                          description: 'The MrP name of the machine to provision'
                  - string:
-                         name: provisioner_url
-                         default: ''
-                         description: 'The url, in the form "http://XXX.XXX.XXX.XXX:XXXX" of MrP'
-                 - string:
-                         name: provisioner_token
-                         default: ''
-                         description: 'The token for access to MrPs API'
-                 - string:
                          name: kernel_desc
                          default: ''
                          description: 'The exact description in MrP of the kernel to be used'
@@ -69,6 +61,8 @@
                          DIR_NAME=${machine_name}$(date +%s)
                          mkdir ${DIR_NAME}
                          cd ${DIR_NAME}
+                         provisioner_url=http://10.40.0.11:5000
+                         provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
                          ${JENKINS_HOME}/scripts/provisioning.py "${PWD}" "${machine_name}" "${provisioner_url}" "${provisioner_token}" "${kernel_desc}" "${initrd_desc}" "${preseed_name}" "${preseed_type}" "${machine_arch}" "${machine_subarch}" "${kernel_opts}" "${kernel_path}" "${initrd_path}" "${preseed_path}"
                          if [ ! -f hosts ]; then
                                 exit 1
