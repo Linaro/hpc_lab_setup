@@ -1,0 +1,91 @@
+ - job:
+         name: os_provision
+         description: "This is the job to provision a machine using MrP"
+         project-type: freestyle
+         block-downstream: false
+         concurrent: true
+         auth-token: "provisioningtoken"
+         node: "master"
+         parameters:
+                 - choice:
+                         name: machine_type
+                         choices:
+                                 - d03
+                                 - d05
+                                 - qdc
+                                 - tx2
+                         default: 'd03'
+                         description: 'The MrP type of the machine to be provisioned'
+                 - choice:
+                         name: job_type
+                         choices:
+                                 - benchmark
+                                 - openhpc
+                         default: 'benchmark'
+                         description: 'The job type you will execute on the machine'
+                 - choice:
+                         name: os
+                         choices:
+                                 - Debian
+                                 - CentOS
+                                 - SUSE
+                         default: 'Debian'
+                         description: 'The OS with which to provision the machine'
+         builders:
+                 - shell: |
+                        #!/bin/bash
+                        set -ex
+
+                        if [ "${os}" == "Debian" ]; then
+                                preseed_type="preseed"
+                                kernel_desc="ERP 17.12"
+                                initrd_desc="ERP 17.12"
+                                kernel_opts=
+                                if [[ ${machine_type} = *"d0"* ]]; then
+                                        preseed_name="debian_d03"
+                                else              #Should be the preseeds for qdc and tx2
+                                        preseed_name="debian_d03"
+                                fi
+                        elif [ "${os}" == "CentOS" ]; then
+                                preseed_type="kickstart"
+                                kernel_opts=
+                                if [[ ${machine_type} = *"d05"* ]]; then
+                                        kernel_desc="Centos 7.4"
+                                        initrd_desc="Centos 7.4"
+                                        preseed_name="centos74_d05"
+                                elif [[ ${machine_type} = *"qdc"* ]]; then              #Should be the preseeds for qdc and tx2
+                                        kernel_desc="CentOS 7.4 Amber"
+                                        initrd_desc="CentOS 7.4 Amber"
+                                        preseed_name="CentOS 7.4 Amber"
+                                fi
+                        elif [ "${os}" == "SUSE" ]; then
+                                preseed_type="kickstart"
+                                kernel_desc=
+                                initrd_desc=
+                                preseed_name=
+                                kernel_opts=
+                                echo "Not Implemented Yet!!!!"
+                        fi
+                        cat << EOF > machine_provision
+                        machine_type=${machine_type}
+                        job_type=${job_type}
+                        kernel_desc=${kernel_desc}
+                        initrd_desc=${initrd_desc}
+                        preseed_name=${preseed_name}
+                        preseed_type=${preseed_type}
+                        kernel_path=
+                        initrd_path=
+                        preseed_path=
+                        EOF
+
+                 - conditional-step:
+                         condition-kind: file-exists
+                         condition-filename: machine_provision
+                         steps:
+                                 - trigger-builds:
+                                         - project: 'machine_provision'
+                                           property-file: machine_provision
+                                           current-parameters: true
+                                           node-label-name: "master"
+                                           node-label: "master"
+                                           block: true
