@@ -74,9 +74,8 @@
                  - shell: |
                         #!/bin/bash
                         set -ex
-                        kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200 -- earlycon console=ttyAMA0,115200"
                         if [ "${machine_type}" == "d03" ]; then
-                                kernel_opts="${kernel_opts} earlycon console=ttyS0,115200 -- earlycon console=ttyS0,115200"
+                                kernel_opts="${kernel_opts} earlycon console=ttyS0,115200"
                                 if [ "${job_type}" == "benchmark" ]; then
                                         machine_name="hpc-d03-04"
                                         machine_arch=AArch64
@@ -88,6 +87,7 @@
 
                                 fi
                         elif [ "${machine_type}" == "d05" ]; then
+                                kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
                                 if [ "${job_type}" == "benchmark" ]; then
                                         machine_name="hpc-d05-02"
                                         machine_arch=AArch64
@@ -98,6 +98,7 @@
                                         machine_subarch=Grub
                                 fi
                         elif [ "${machine_type}" == "qdc" ]; then
+                                kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
                                 if [ "${job_type}" == "benchmark" ]; then
                                         machine_name="hpc-qdc-05"
                                         machine_arch=AArch64
@@ -108,6 +109,7 @@
                                         machine_subarch=GrubWithOptionEfiboot
                                 fi
                         elif [ "${machine_type}" == "tx2" ]; then
+                                kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
                                 if [ "${job_type}" == "benchmark" ]; then
                                         machine_name="hpc-tx2-01"
                                         machine_arch=AArch64
