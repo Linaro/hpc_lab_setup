@@ -4,7 +4,6 @@
          project-type: freestyle
          concurrent: true
          block-downstream: false
-         auth-token: "provisioningtoken"
          parameters:
                  - node:
                          name: node
