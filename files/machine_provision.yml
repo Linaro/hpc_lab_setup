@@ -5,6 +5,30 @@
          block-downstream: false
          concurrent: true
          node: "master"
+         properties:
+                 - authorization:
+                         hpc-sig-admin:
+                                 - credentials-create
+                                 - credentials-delete
+                                 - credentials-manage-domains
+                                 - credentials-update
+                                 - credentials-view
+                                 - job-build
+                                 - job-cancel
+                                 - job-configure
+                                 - job-delete
+                                 - job-discover
+                                 - job-move
+                                 - job-read
+                                 - job-status
+                                 - job-workspace
+                                 - ownership-jobs
+                                 - run-delete
+                                 - run-update
+                                 - scm-tag
+                         hpc-sig-devel:
+                                 - job-build
+                                 - job-read
          parameters:
                  - string:
                          name: machine_type
@@ -65,11 +89,11 @@
                                 fi
                         elif [ "${machine_type}" == "d05" ]; then
                                 if [ "${job_type}" == "benchmark" ]; then
-                                        machine_name="hpc-d05-01"
+                                        machine_name="hpc-d05-02"
                                         machine_arch=AArch64
                                         machine_subarch=Grub
                                 elif [ "${job_type}" == "openhpc" ]; then
-                                        machine_name="hpc-d05-02"
+                                        machine_name="hpc-d05-01"
                                         machine_arch=AArch64
                                         machine_subarch=Grub
                                 fi
@@ -79,7 +103,7 @@
                                         machine_arch=AArch64
                                         machine_subarch=GrubWithOptionEfiboot
                                 elif [ "${job_type}" == "openhpc" ]; then
-                                        machine_name="hpc-qdc-04"
+                                        machine_name="hpc-qdc-02"
                                         machine_arch=AArch64
                                         machine_subarch=GrubWithOptionEfiboot
                                 fi
