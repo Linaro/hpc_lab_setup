@@ -37,13 +37,16 @@
           - name: Ensure script dir exists
             file: path="/var/lib/jenkins/scripts" state=directory
           
-          - name: Copy the playbook maker to Jenkins Master's script dir
+          - name: Copy the helper scripts to Jenkins Master's script dir
             copy:
-                    src: "files/provisioning.py"
+                    src: "{{ item }}"
                     dest: "/var/lib/jenkins/scripts/"
                     owner: root
                     group: root
                     mode: u=rx,g=rx,o=rwx
+            with_items:
+                    - "files/provisioning.py"
+                    - "files/running_benchmark.py"
 
           - name: Create jenkins_slave group to keep them from unionizing
             group:

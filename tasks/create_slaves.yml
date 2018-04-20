@@ -37,3 +37,12 @@
           group: "jenkins_slave"
           mode: u=rx,g=rx,o=rwx 
   with_list: "{{ jslave_list }}"
+
+- name: Copy the benchmark runner script to their home dir
+  copy:
+          src: "../files/running_benchmark.py"
+          dest: "/home/{{ item }}/"
+          owner: "{{ item }}"
+          group: "jenkins_slave"
+          mode: u=rx,g=rx,o=rwx 
+  with_list: "{{ jslave_list }}"
