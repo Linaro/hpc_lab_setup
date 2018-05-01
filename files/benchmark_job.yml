@@ -1,0 +1,83 @@
+ - job:
+         name: benchmark_job
+         description: "This is a job to run a benchmark on a machine"
+         project-type: freestyle
+         block-downstream: false
+         concurrent: true
+         node: "master"
+         properties:
+                 - authorization:
+                         hpc-sig-admin:
+                                 - credentials-create
+                                 - credentials-delete
+                                 - credentials-manage-domains
+                                 - credentials-update
+                                 - credentials-view
+                                 - job-build
+                                 - job-cancel
+                                 - job-configure
+                                 - job-delete
+                                 - job-discover
+                                 - job-move
+                                 - job-read
+                                 - job-status
+                                 - job-workspace
+                                 - ownership-jobs
+                                 - run-delete
+                                 - run-update
+                                 - scm-tag
+                         hpc-sig-devel:
+                                 - job-build
+         parameters:
+                 - node:
+                         name: node
+                         default: ''
+                         description: 'Node with which to run the benchmark on the machine'
+                 - choice:
+                         name: machine_type
+                         choices:
+                                 - d03
+                                 - d05
+                                 - qdc
+                                 - tx2
+                         default: 'd03'
+                         description: 'The MrP type of the machine to be provisioned'
+                 - string:
+                         name: ip
+                         description: 'The IP of the machine'
+                 - choice:
+                         name: branch
+                         choices:
+                                 - master
+                                 - rengolin
+                                 - bger
+                         default: 'master'
+                         description: 'The benchmark_harness branch to use'
+                 - choice:
+                         name: benchmark
+                         choices:
+                                 - lulesh
+                         default: 'lulesh'
+                         description: 'The benchmark to run on the machine'
+                 - choice:
+                         name: compiler
+                         choices:
+                                 - gcc
+                                 - clang
+                         default: 'gcc'
+                         description: 'The compiler with which to compile the benchmark'
+         builders:
+                 - shell: |
+                        #!/bin/bash
+                        set -ex
+                        
+                        SSH_FLAGS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+                        ssh ${SSH_FLAGS} root@${ip} "echo '2' | tee  /proc/sys/kernel/perf_event_paranoid"
+                        ssh ${SSH_FLAGS} root@${ip} "apt update ; apt install -y python3 python3-pip git build-essential linux-perf"
+                        if ssh ${SSH_FLAGS} root@${ip} '[ ! -d benchmark_harness ]' ; then
+                                ssh ${SSH_FLAGS} root@${ip} git clone -b ${branch} https://github.com/BaptisteGerondeau/benchmark_harness.git
+                        else
+                                ssh ${SSH_FLAGS} root@${ip} "git -C benchmark_harness pull ; git -C benchmark_harness checkout ${branch}"
+                        fi
+                        ssh ${SSH_FLAGS} root@${ip} pip3 install -r benchmark_harness/requirements.txt
+                        ssh ${SSH_FLAGS} root@${ip} "cd benchmark_harness ; ./benchmark_controller.py ${benchmark} ${machine_type} ${compiler} --compiler-flags="${compiler_flags}" --link-flags="${link_flags}" --benchmark-options="${benchmark_options}" --benchmark-build-deps="${benchmark_build_deps}" --benchmark-run-deps="${benchmark_run_deps}" --benchmark-root="/tmp/" -v"
