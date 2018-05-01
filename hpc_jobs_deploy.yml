@@ -46,7 +46,6 @@
                     mode: u=rx,g=rx,o=rwx
             with_items:
                     - "files/provisioning.py"
-                    - "files/running_benchmark.py"
 
           - name: Create jenkins_slave group to keep them from unionizing
             group:
@@ -187,6 +186,7 @@
                     - provisioning_job
                     - machine_provision
                     - os_provision
+                    - benchmark_job
 
           - name: Create jobs in Jenkins
             shell: "jenkins-jobs update /var/lib/jenkins/scripts/{{ item }}.yml"
@@ -194,3 +194,4 @@
                     - provisioning_job
                     - machine_provision
                     - os_provision
+                    - benchmark_job
