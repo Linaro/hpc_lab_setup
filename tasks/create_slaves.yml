@@ -8,12 +8,23 @@
           group: "jenkins_slave"
   with_list: "{{ jslave_list }}"
 
-- name: Slurp up the ssh_keys
+- name: Fetch the ssh_keys from the remote
   fetch:
       src: "/home/{{ item }}/.ssh/id_rsa.pub"
-      dest: "/tmp/{{ item }}.sshkey"
+      dest: "./{{ item }}.sshkey"
       flat: yes
   with_list: "{{ jslave_list }}"
+
+- name: Putting the keys into the template for the fileserver
+  template:
+    src: templates/jslaves.yml.j2
+    dest: /tmp/jslaves.yml
+
+- name: Get the template back
+  fetch:
+    src: /tmp/jslaves.yml
+    dest: ./
+    flat: yes
 
 - name: Add Master Jenkins' ssh key to the slaves authorized list
   authorized_key:
@@ -26,7 +37,7 @@
   authorized_key:
           user: "{{ item }}"
           state: present
-          key: "{{ lookup('file', '/tmp/{{ item }}.sshkey') }}"
+          key: "{{ lookup('file', './{{ item }}.sshkey') }}"
   with_list: "{{ jslave_list }}"
 
 - name: Copy the playbook maker script to their home dir
