@@ -178,6 +178,12 @@
                 dest: "/etc/ansible/roles/ansible-role-provision-mr-provisioner"
                 version: "bger-hpc"
 
+          - name: Install benchmark deployment role
+            git:
+                repo: https://github.com/Linaro/hpc_deploy_benchmarks.git
+                dest: "/etc/ansible/roles/hpc-deploy-benchmarks"
+                version: "master"
+
           - name: Copy yaml job definition(s)
             copy:
                 src: "files/{{ item }}.yml"
