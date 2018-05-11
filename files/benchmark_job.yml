@@ -34,19 +34,6 @@
                          default: ''
                          description: 'Node with which to run the benchmark on the machine'
                  - choice:
-                         name: machine_type
-                         choices:
-                                 - d03
-                                 - d05
-                                 - qdc
-                                 - tx2
-                         default: 'd03'
-                         description: 'The MrP type of the machine to be provisioned'
-                 - string:
-                         name: ip
-                         default: ''
-                         description: 'The IP of the machine'
-                 - choice:
                          name: branch
                          choices:
                                  - master
@@ -91,6 +78,11 @@
                  - shell: |
                         #!/bin/bash
                         set -ex
+                        if [[ ${NODE_NAME} =~ -(.+)- ]]; then
+                                machine_type=${BASH_REMATCH[1]}
+                        else
+                                echo "Node Name is wrong"
+                        fi
                         cat << EOF > benchmark_job.yml
                         mr_provisioner_url: http://10.40.0.11:5000
                         mr_provisioner_token: $(cat "/home/${NODE_NAME}/mrp_token")
