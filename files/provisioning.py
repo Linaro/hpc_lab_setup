@@ -54,6 +54,7 @@ class ProvisioningJobMaker(object):
           - role: ansible-role-provision-mr-provisioner
 
 - hosts: mr_provisioner_hosts
+  remote_user: root
   gather_facts: no
   tasks:
       - name: Wait for host for 3600 seconds, but only start checking after 60 seconds
