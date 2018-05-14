@@ -79,15 +79,16 @@
                         machine_name="hpc-${machine_type}-${job_type}"
                         machine_arch=AArch64
                         machine_subarch=Grub
-                        kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
 
                         # Special cases
                         if [ "${machine_type}" == "d03" ]; then
                             kernel_opts="${kernel_opts} earlycon console=ttyS0,115200"
+                        else
+                            kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
+                        fi
 
-                        elif [ "${machine_type}" == "qdc" ]; then
+                        if [ "${machine_type}" == "qdc" ]; then
                             machine_subarch=GrubWithOptionEfiboot
-
                         fi
 
                         # Build trigger file

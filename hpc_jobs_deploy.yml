@@ -174,9 +174,9 @@
 
           - name: Install provisioning role
             git:
-                repo: https://github.com/BaptisteGerondeau/ansible-role-mr-provisioner.git
+                repo: https://github.com/Linaro/ansible-role-mr-provisioner.git
                 dest: "/etc/ansible/roles/ansible-role-provision-mr-provisioner"
-                version: "bger-hpc"
+                version: "master"
 
           - name: Install benchmark deployment role
             git:
