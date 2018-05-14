@@ -45,19 +45,14 @@
                                  - openhpc
                          default: 'benchmark'
                          description: 'The job type you will execute on the machine'
-                 - choice:
-                         name: os
-                         choices:
-                                 - Debian
-                                 - CentOS
-                         default: 'Debian'
-                         description: 'The OS with which to provision the machine'
          builders:
                  - shell: |
                         #!/bin/bash
                         set -ex
 
-                        if [ "${os}" == "Debian" ]; then
+                        # Hard-coded Debian for benchmarks, CentOS for OpenHPC
+                        # we'll need this to be a little more dynamic in the future
+                        if [ "${job_type}" == "benchmark" ]; then
                                 preseed_type="preseed"
                                 kernel_desc="Debian ERP 17.12"
                                 initrd_desc="Debian ERP 17.12"
@@ -66,7 +61,7 @@
                                 if [[ "${machine_type}" = "d03" ]]; then
                                         preseed_name="${preseed_name} D03"
                                 fi
-                        elif [ "${os}" == "CentOS" ]; then
+                        elif [ "${job_type}" == "openhpc" ]; then
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS ERP 99"
                                 initrd_desc="CentOS ERP 99"
