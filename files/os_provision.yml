@@ -58,9 +58,6 @@
                                 initrd_desc="Debian ERP 17.12"
                                 preseed_name="Debian ERP 17.12"
                                 kernel_opts=
-                                if [[ "${machine_type}" = "d03" ]]; then
-                                        preseed_name="${preseed_name} D03"
-                                fi
                         elif [ "${job_type}" == "openhpc" ]; then
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS ERP 99"
