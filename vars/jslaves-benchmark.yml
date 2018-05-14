@@ -1,0 +1,5 @@
+---
+jslaves_benchmark:
+    - name: jslave-d03-benchmark
+      cgroup: huawei
+      ssh_key: 

@@ -1,0 +1,8 @@
+---
+users:
+    - name: test_q
+      ssh_key: "{{ test_ssh_key }}"
+      group: qualcomm
+    - name: test_h
+      ssh_key: "{{ test_ssh_key }}"
+      group: huawei

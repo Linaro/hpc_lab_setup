@@ -1,0 +1,5 @@
+---
+jslaves_openhpc:
+    - name: jslave-d03-openhpc
+      cgroup: huawei
+      ssh_key: 
