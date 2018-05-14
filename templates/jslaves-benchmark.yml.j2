@@ -1,0 +1,14 @@
+---
+jslaves_benchmark:
+{% for item in jslave_list|select("match", ".*benchmark.*") %}
+    - name: {{ item }}
+{% if item is match(".*qdc.*") %}
+      cgroup: qualcomm
+{% elif item is match(".*d0.*") %}
+      cgroup: huawei
+{% elif item is match(".*tx.*") %}
+      cgroup: cavium
+{% endif %}
+      ssh_key: {% include '%s.sshkey' % item %}
+
+{% endfor %}
