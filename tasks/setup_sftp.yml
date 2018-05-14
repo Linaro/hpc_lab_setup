@@ -1,0 +1,106 @@
+---
+- name: Install dependencies
+  apt:
+         name: "{{ item }}"
+         state: present
+  with_items:
+         - acl
+
+- name: Create groups
+  group:
+         name: "{{ item }}"
+         state: present
+  with_items:
+         - "{{ vendors_list }}"
+
+- name: Create groups
+  group:
+         name: "jslave-{{ item }}"
+         state: present
+  with_items:
+         - "{{ vendors_list }}"
+
+- name: Create jslave users
+  user:
+         name: "{{ item.name }}"
+         shell: /bin/false
+         groups: "jslave-{{ item.cgroup }}"
+  with_items:
+   - "{{ jslaves_benchmark }}"
+   - "{{ jslaves_openhpc }}"
+
+- name: Add key to the jslaves authorized list
+  authorized_key:
+         user: "{{ item.name }}"
+         state: present
+         key: "{{ item.ssh_key }}"
+  with_items:
+   - "{{ jslaves_benchmark }}"
+   - "{{ jslaves_openhpc }}"
+
+- name: Create sftp users
+  user:
+         name: "{{ item.name }}"
+         shell: /bin/false 
+         groups: "{{ item.group }}"
+  with_items:
+         - "{{ users }}"
+
+- name: Add key to the users authorized list
+  authorized_key:
+         user: "{{ item.name }}"
+         state: present
+         key: "{{ item.ssh_key }}"
+  with_items:
+         - "{{ users }}"
+
+- name: Create repositories for results
+  file:
+         path: /var/results
+         state: directory
+         owner: root
+         group: root
+
+- name: Set GID bit on the results dir
+  shell: "chmod g+s /var/results"
+
+- name: Create repositories for results
+  file:
+         path: "/var/results/{{ item }}"
+         state: directory
+         owner: root
+         group: root
+  with_items:
+    - benchmark
+    - openhpc
+
+- name: Set GID bit on the results dir
+  shell: "chmod g+s /var/results/{{ item }}"
+  with_items:
+    - benchmark
+    - openhpc
+
+- name: Put the right ACL permissions on the results dirs
+  include_tasks: ./tasks/set_acl_results.yml
+  vars:
+    result_type: benchmark
+    jslaves: "{{ jslaves_benchmark }}"
+
+- name: Put the right ACL permissions on the results dirs
+  include_tasks: ./tasks/set_acl_results.yml
+  vars:
+    result_type: openhpc
+    jslaves: "{{ jslaves_openhpc }}"
+    
+- name: Copy sshd_config
+  template:
+         src: "./templates/sshd_config.j2"
+         dest: "/etc/ssh/sshd_config"
+         owner: root
+         group: root
+         mode: '0600'
+         validate: /usr/sbin/sshd -t -f %s
+         backup: yes
+
+- name: Restart ssh daemon
+  shell: "systemctl restart sshd.service"

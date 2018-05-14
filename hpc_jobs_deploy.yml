@@ -1,5 +1,4 @@
 ---
-
 - hosts: jenkins
   remote_user: root
   vars:
@@ -160,8 +159,8 @@
                 state: directory
 
           - name: Copy JJB config file
-            copy:
-                src: "files/jenkins_jobs.ini.secret"
+            template:
+                src: "templates/jenkins_jobs.ini.j2"
                 dest: "/etc/jenkins_jobs/jenkins_jobs.ini"
 
           - name: Install Ansible
@@ -201,3 +200,14 @@
                     - machine_provision
                     - os_provision
                     - benchmark_job
+
+- hosts: fileserver
+  vars:
+    test_ssh_key: 
+  vars_files:
+          - vars/vendors.yml
+          - vars/users.yml
+          - vars/jslaves-benchmark.yml
+          - vars/jslaves-openhpc.yml
+  tasks:
+          - include_tasks: ./tasks/setup_sftp.yml

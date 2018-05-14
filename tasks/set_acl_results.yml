@@ -1,0 +1,54 @@
+---
+- name: Create each contained result directory
+  file:
+         path: "/var/results/{{ result_type }}/{{ item }}"
+         state: directory
+         owner: root
+         group: root
+         mode: "770"
+  with_items:
+         - "{{ vendors_list }}"
+
+- name: Give proper ACL permissions
+  acl:
+         path: "/var/results/{{ result_type }}/{{ item }}"
+         entity: "{{ item }}"
+         etype: group
+         permissions: rx
+         default: no
+         state: present
+  with_items:
+         - "{{ vendors_list }}"
+
+- name: Give proper ACL permissions
+  acl:
+         path: "/var/results/{{ result_type }}/{{ item }}"
+         entity: "{{ item }}"
+         etype: group
+         permissions: r
+         default: yes
+         state: present
+  with_items:
+         - "{{ vendors_list }}"
+
+- name: Give proper ACL permissions
+  acl:
+         path: "/var/results/{{ result_type }}/{{ item.cgroup }}"
+         entity: "jslave-{{ item.cgroup }}"
+         etype: group
+         permissions: wx
+         default: no
+         state: present
+  with_items:
+   - "{{ jslaves }}"
+
+- name: Give proper ACL permissions
+  acl:
+         path: "/var/results/{{ result_type }}/{{ item.cgroup }}"
+         entity: "jslave-{{ item.cgroup }}"
+         etype: group
+         permissions: w
+         default: yes
+         state: present
+  with_items:
+   - "{{ jslaves }}"
