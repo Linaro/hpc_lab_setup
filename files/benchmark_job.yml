@@ -78,6 +78,7 @@
                  - shell: |
                         #!/bin/bash
                         set -ex
+                        cd ${WORKSPACE}
                         if [[ ${NODE_NAME} =~ -(.+)- ]]; then
                                 machine_type=${BASH_REMATCH[1]}
                         else
@@ -98,4 +99,6 @@
                         benchmark_run_deps: ${benchmark_run_deps}
                         EOF
 
-                        ansible-playbook /etc/ansible/roles/hpc_deploy_benchmarks/hpc_deploy_benchmarks.yml --extra-vars="@benchmark_job.yml" 
+                        git clone -b ${branch} https://github.com/Linaro/hpc_deploy_benchmarks.git
+
+                        ansible-playbook hpc_deploy_benchmarks/hpc_deploy_benchmarks.yml --extra-vars="@benchmark_job.yml" 
