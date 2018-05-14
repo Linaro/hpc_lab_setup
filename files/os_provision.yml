@@ -36,7 +36,6 @@
                                  - d03
                                  - d05
                                  - qdc
-                                 - tx2
                          default: 'd03'
                          description: 'The MrP type of the machine to be provisioned'
                  - choice:
@@ -51,7 +50,6 @@
                          choices:
                                  - Debian
                                  - CentOS
-                                 - SUSE
                          default: 'Debian'
                          description: 'The OS with which to provision the machine'
          builders:
@@ -61,32 +59,20 @@
 
                         if [ "${os}" == "Debian" ]; then
                                 preseed_type="preseed"
-                                kernel_desc="ERP 17.12"
-                                initrd_desc="ERP 17.12"
+                                kernel_desc="Debian ERP 17.12"
+                                initrd_desc="Debian ERP 17.12"
+                                preseed_name="Debian ERP 17.12"
                                 kernel_opts=
-                                if [[ ${machine_type} = *"d0"* ]]; then
-                                        preseed_name="debian_d03"
-                                else              #Should be the preseeds for qdc and tx2
-                                        preseed_name="debian_d03"
+                                if [[ "${machine_type}" = "d03" ]]; then
+                                        preseed_name="${preseed_name} D03"
                                 fi
                         elif [ "${os}" == "CentOS" ]; then
                                 preseed_type="kickstart"
-                                kernel_opts=
-                                if [[ ${machine_type} = *"d05"* ]]; then
-                                        kernel_desc="Centos 7.4"
-                                        initrd_desc="Centos 7.4"
-                                        preseed_name="centos74_d05"
-                                elif [[ ${machine_type} = *"qdc"* ]]; then              #Should be the preseeds for qdc and tx2
-                                        kernel_desc="CentOS 7.4 Amber"
-                                        initrd_desc="CentOS 7.4 Amber"
-                                        preseed_name="CentOS 7.4 Amber"
-                                fi
-                        elif [ "${os}" == "SUSE" ]; then
-                                preseed_type="kickstart"
-                                kernel_desc=
-                                initrd_desc=
-                                preseed_name=
-                                kernel_opts=
+                                kernel_desc="CentOS ERP 99"
+                                initrd_desc="CentOS ERP 99"
+                                preseed_name="CentOS ERP 99"
+                                kernel_opts="ip=dhcp text inst.stage2=http://snapshots.linaro.org/96boards/reference-platform/components/centos-installer-staging/99/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                        else
                                 echo "Not Implemented Yet!!!!"
                         fi
                         cat << EOF > machine_provision
@@ -96,6 +82,7 @@
                         initrd_desc=${initrd_desc}
                         preseed_name=${preseed_name}
                         preseed_type=${preseed_type}
+                        kernel_opts=${kernel_opts}
                         kernel_path=
                         initrd_path=
                         preseed_path=
