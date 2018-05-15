@@ -38,6 +38,7 @@ reboot
 @core
 chrony
 kexec-tools
+git
 
 %end
 

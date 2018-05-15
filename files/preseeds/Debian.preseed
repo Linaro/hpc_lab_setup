@@ -66,7 +66,7 @@ d-i partman/confirm_nooverwrite boolean true
 
 # Package selection
 tasksel tasksel/first multiselect standard
-d-i pkgsel/include string openssh-server vim build-essential
+d-i pkgsel/include string openssh-server build-essential git
 d-i pkgsel/upgrade select none
 popularity-contest popularity-contest/participate boolean false
 

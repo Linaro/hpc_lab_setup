@@ -47,13 +47,10 @@
                                  - lulesh
                          default: 'lulesh'
                          description: 'The benchmark to run on the machine'
-                 - choice:
+                 - string:
                          name: compiler
-                         choices:
-                                 - gcc
-                                 - clang
                          default: 'gcc'
-                         description: 'The compiler with which to compile the benchmark'
+                         description: 'The compiler (url or installed binary) with which to compile the benchmark'
                  - string:
                          name: compiler_flags
                          default: ''
@@ -79,16 +76,33 @@
                         #!/bin/bash
                         set -ex
                         cd ${WORKSPACE}
+                        eval `ssh-agent`
+                        ssh-add
+
                         if [[ ${NODE_NAME} =~ -(.+)- ]]; then
                                 machine_type=${BASH_REMATCH[1]}
                         else
                                 echo "Node Name is wrong"
                         fi
+                        case ${machine_type} in
+                        [d0]*)
+                            vendor='huawei'
+                            ;;
+                        [qdc])
+                            vendor='qualcomm'
+                            ;;
+                        [tx]*)
+                            vendor='cavium'
+                            ;;
+                        esac
                         cat << EOF > benchmark_job.yml
                         mr_provisioner_url: http://10.40.0.11:5000
                         mr_provisioner_token: $(cat "/home/${NODE_NAME}/mrp_token")
                         mr_provisioner_machine_name: hpc-${machine_type}-benchmark
                         sftp_dirname: ${machine_type}-${BUILD_NUMBER}
+                        sftp_user: ${NODE_NAME}
+                        sftp_server_ip: 10.40.0.13
+                        vendor: ${vendor}
                         branch: ${branch}
                         benchmark: ${benchmark}
                         machine_type: ${machine_type}
@@ -100,6 +114,10 @@
                         benchmark_run_deps: ${benchmark_run_deps}
                         EOF
 
+                        if [ -d hpc_deploy_benchmarks ]; then
+                            rm -rf hpc_deploy_benchmarks
+                        fi
                         git clone -b ${branch} https://github.com/Linaro/hpc_deploy_benchmarks.git
-
-                        ansible-playbook hpc_deploy_benchmarks/hpc_deploy_benchmarks.yml --extra-vars="@benchmark_job.yml" 
+                        cd hpc_deploy_benchmarks
+                        ansible-playbook hpc_deploy_benchmarks.yml --extra-vars="@../benchmark_job.yml"
+                        ssh-agent -k 
