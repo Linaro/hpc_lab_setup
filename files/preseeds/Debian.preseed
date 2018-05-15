@@ -1,0 +1,88 @@
+# Kernel boot args: linux auto=true interface=auto priority=critical http://people.linaro.org/~chase.qi/configs/preseed.cfg
+# Pure text mode: linux auto=true interface=auto priority=critical noshell BOOT_DEBUG=1 DEBIAN_FRONTEND=text url=http://people.linaro.org/~chase.qi/configs/preseed.cfg
+
+# Notes:
+# When adding preseed/late_command line please make sure 'apt-get install -y linux-image-reference-arm64' included.
+# Both local0 and local1 for repo adding occupied by the embedded preseed.cfg in initrd.gz, don't use them.
+
+# Localization
+d-i debian-installer/locale string en_GB.UTF-8
+d-i keyboard-configuration/xkb-keymap select us
+
+# Network configuration
+d-i netcfg/choose_interface select auto
+d-i netcfg/dhcp_timeout string 60
+d-i netcfg/disable_autoconfig boolean false
+
+# Any hostname and domain names assigned from dhcp take precedence over
+# values set here. However, setting the values still prevents the questions
+# from being shown, even if values come from dhcp.
+# Hostname:
+d-i netcfg/get_hostname string "{{hostname}}"
+
+# Domain name:
+d-i netcfg/get_domain string
+
+# If you want to force a hostname, regardless of what either the DHCP
+# server returns or what the reverse DNS entry for the IP is, uncomment
+# and adjust the following line.
+d-i netcfg/hostname string "{{hostname}}"
+
+### Network console
+# Use the following settings if you wish to make use of the network-console
+# component for remote installation over SSH. This only makes sense if you
+# intend to perform the remainder of the installation manually.
+#d-i anna/choose_modules string network-console
+#d-i network-console/authorized_keys_url string http://10.0.0.1/openssh-key
+#d-i network-console/password password r00tme
+#d-i network-console/password-again password r00tme
+
+# Mirror settings
+d-i mirror/country string UK
+d-i mirror/http/hostname string ftp.uk.debian.org
+d-i mirror/http/directory string /debian
+d-i mirror/http/proxy string
+
+# Account setup
+d-i passwd/root-password-crypted password !!
+d-i passwd/make-user boolean false
+
+# Clock and time zone setup
+d-i clock-setup/utc boolean true
+d-i time/zone string GMT
+d-i clock-setup/ntp boolean true
+
+# Partitioning
+d-i partman-auto/disk string /dev/sda
+#d-i partman-auto/method string regular
+d-i partman-auto/method string regular
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-md/device_remove_md boolean true
+d-i partman-auto/choose_recipe select atomic
+d-i partman/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+# Package selection
+tasksel tasksel/first multiselect standard
+d-i pkgsel/include string openssh-server vim build-essential
+d-i pkgsel/upgrade select none
+popularity-contest popularity-contest/participate boolean false
+
+# Misc options
+d-i grub-installer/only_debian boolean true
+d-i grub-installer/bootdev string /dev/sda
+d-i finish-install/reboot_in_progress note
+
+# Late commands & GRUB_CMDLINE_LINUX modification for console enabling
+d-i preseed/late_command string \
+in-target sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin without-password/g' /etc/ssh/sshd_config ; \
+in-target mkdir -p /root/.ssh ; \
+in-target chmod 700 /target/root/.ssh ; \
+{% for key in ssh_keys %}
+printf "{{key}}\n" >> /target/root/.ssh/authorized_keys ; \
+{% endfor %}
+chmod 600 /target/root/.ssh/authorized_keys ; \
+in-target apt remove -y linux-image-*bpo* ; \
+in-target sync;

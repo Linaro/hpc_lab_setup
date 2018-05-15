@@ -1,0 +1,10 @@
+---
+list_preseeds:
+    - name: "Debian"
+      description: "Debian"
+      type: "preseed"
+      path: "./files/preseeds/Debian_norootpw.preseed"
+    - name: "CentOS"
+      description: "CentOS"
+      type: "kickstart"
+      path: "./files/preseeds/Centos_norootpw.kickstart"

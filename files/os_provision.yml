@@ -56,13 +56,13 @@
                                 preseed_type="preseed"
                                 kernel_desc="Debian ERP 17.12"
                                 initrd_desc="Debian ERP 17.12"
-                                preseed_name="Debian ERP 17.12"
+                                preseed_name="Debian"
                                 kernel_opts=
                         elif [ "${job_type}" == "openhpc" ]; then
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS ERP 99"
                                 initrd_desc="CentOS ERP 99"
-                                preseed_name="CentOS ERP 99"
+                                preseed_name="CentOS"
                                 kernel_opts="ip=dhcp text inst.stage2=http://snapshots.linaro.org/96boards/reference-platform/components/centos-installer-staging/99/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
                         else
                                 echo "Not Implemented Yet!!!!"

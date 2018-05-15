@@ -211,3 +211,26 @@
           - vars/jslaves-openhpc.yml
   tasks:
           - include_tasks: ./tasks/setup_sftp.yml
+
+- hosts: localhost
+  gather_facts: no
+  vars:
+         mr_provisioner_do_provision: False
+         mr_provisioner_url: "http://10.40.0.11:5000"
+  vars_files:
+          - vars/mrp_creds.yml.secret
+          - vars/list_preseeds.yml
+  roles:
+          - role: ansible-role-mr-provisioner
+  tasks:
+          - name: Upload preseed from info in list_preseed.yml
+            mr_provisioner_preseed:
+                    name: "{{ item.name }}"
+                    description: "{{ item.description }}"
+                    type: "{{ item.type }}"
+                    path: "{{ item.path }}"
+                    url: "{{ mr_provisioner_url }}"
+                    token: "{{ mr_provisioner_auth_token }}"
+                    public: "{{ item.public | default(true) }}"
+                    known_good: "{{ item.known_good | default(true) }}"
+            with_items: "{{ list_preseeds }}"
