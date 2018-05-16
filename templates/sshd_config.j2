@@ -124,7 +124,7 @@ Match Group jslave-{{ item }}
         ForceCommand internal-sftp -d /var/results -u 0557
 
 Match Group {{ item }}
-	ChrootDirectory /var/results/{{ item }}
+	ChrootDirectory /var/results/
         AllowTCPForwarding no
         X11Forwarding no
         ForceCommand internal-sftp -d /var/results/qualcomm
