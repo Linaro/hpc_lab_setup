@@ -25,7 +25,7 @@
          path: "/var/results/{{ result_type }}/{{ item }}"
          entity: "{{ item }}"
          etype: group
-         permissions: r
+         permissions: rx
          default: yes
          state: present
   with_items:
