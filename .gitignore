@@ -1,3 +1,4 @@
 *.secret
 *.secrets
 *.retry
+*.sshkey
