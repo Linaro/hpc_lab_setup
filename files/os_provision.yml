@@ -45,28 +45,48 @@
                                  - openhpc
                          default: 'benchmark'
                          description: 'The job type you will execute on the machine'
+                 - choice:
+                         name: os_type
+                         choices:
+                                 - default
+                                 - debian
+                                 - centos
+                         default: 'default'
+                         description: 'The OS distro. Default: Debian for benchmark, CentOS for openhpc'
          builders:
                  - shell: |
                         #!/bin/bash
                         set -ex
 
-                        # Hard-coded Debian for benchmarks, CentOS for OpenHPC
-                        # we'll need this to be a little more dynamic in the future
-                        if [ "${job_type}" == "benchmark" ]; then
-                                preseed_type="preseed"
-                                kernel_desc="Debian ERP 17.12"
-                                initrd_desc="Debian ERP 17.12"
-                                preseed_name="Debian"
-                                kernel_opts=
-                        elif [ "${job_type}" == "openhpc" ]; then
-                                preseed_type="kickstart"
-                                kernel_desc="CentOS ERP 99"
-                                initrd_desc="CentOS ERP 99"
-                                preseed_name="CentOS"
-                                kernel_opts="ip=dhcp text inst.stage2=http://snapshots.linaro.org/96boards/reference-platform/components/centos-installer-staging/99/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
-                        else
-                                echo "Not Implemented Yet!!!!"
+                        # Chose default OS
+                        if [ "${os_type}" == "default" ]; then
+                          if [ "${job_type}" == "benchmark" ]; then
+                            os_type=debian
+                          elif [ "${job_type}" == "openhpc" ]; then
+                            os_type=centos
+                          else
+                            echo "Not Implemented Yet!!!!"
+                          fi
                         fi
+
+                        # Chose known good kernel/initrd/cmdline
+                        if [ "${os_type}" == "debian" ]; then
+                          preseed_type="preseed"
+                          kernel_desc="Debian ERP 17.12"
+                          initrd_desc="Debian ERP 17.12"
+                          preseed_name="Debian"
+                          kernel_opts=
+                        elif [ "${os_type}" == "centos" ]; then
+                          preseed_type="kickstart"
+                          kernel_desc="CentOS ERP 99"
+                          initrd_desc="CentOS ERP 99"
+                          preseed_name="CentOS"
+                          kernel_opts="ip=dhcp text inst.stage2=http://snapshots.linaro.org/96boards/reference-platform/components/centos-installer-staging/99/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                        else
+                          echo "Not Implemented Yet!!!!"
+                        fi
+
+                        # Build trigger machine_provision job
                         cat << EOF > machine_provision
                         machine_type=${machine_type}
                         job_type=${job_type}
