@@ -2,4 +2,13 @@
 jslaves_openhpc:
     - name: jslave-d03-openhpc
       cgroup: huawei
-      ssh_key: 
+      ssh_key:
+    - name: jslave-d05-openhpc
+      cgroup: huawei
+      ssh_key:
+    - name: jslave-qdc-openhpc
+      cgroup: qualcomm
+      ssh_key:
+    - name: jslave-tx2-openhpc
+      cgroup: cavium
+      ssh_key:

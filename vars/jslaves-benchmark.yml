@@ -2,4 +2,13 @@
 jslaves_benchmark:
     - name: jslave-d03-benchmark
       cgroup: huawei
-      ssh_key: 
+      ssh_key:
+    - name: jslave-d05-benchmark
+      cgroup: huawei
+      ssh_key:
+    - name: jslave-qdc-benchmark
+      cgroup: qualcomm
+      ssh_key:
+    - name: jslave-tx2-benchmark
+      cgroup: cavium
+      ssh_key:
