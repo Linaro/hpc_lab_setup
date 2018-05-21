@@ -45,6 +45,7 @@
                          name: benchmark
                          choices:
                                  - lulesh
+                                 - himeno
                          default: 'lulesh'
                          description: 'The benchmark to run on the machine'
                  - string:
