@@ -64,7 +64,7 @@
 - name: Set GID bit on the results dir
   shell: "chmod g+s /var/results"
 
-- name: Create repositories for results
+- name: Create repositories for results and toolchains
   file:
          path: "/var/results/{{ item }}"
          state: directory
@@ -73,12 +73,14 @@
   with_items:
     - benchmark
     - openhpc
+    - toolchains
 
-- name: Set GID bit on the results dir
+- name: Set GID bit on the results and toolchain dir
   shell: "chmod g+s /var/results/{{ item }}"
   with_items:
     - benchmark
     - openhpc
+    - toolchains
 
 - name: Put the right ACL permissions on the results dirs
   include_tasks: ./tasks/set_acl_results.yml
@@ -90,6 +92,16 @@
   include_tasks: ./tasks/set_acl_results.yml
   vars:
     result_type: openhpc
+    jslaves: "{{ jslaves_openhpc }}"
+    
+- name: Put the right ACL permissions on the toolchains dir
+  include_tasks: ./tasks/set_acl_toolchains.yml
+  vars:
+    jslaves: "{{ jslaves_benchmark }}"
+
+- name: Put the right ACL permissions on the toolchains dirs
+  include_tasks: ./tasks/set_acl_toolchains.yml
+  vars:
     jslaves: "{{ jslaves_openhpc }}"
     
 - name: Copy sshd_config
