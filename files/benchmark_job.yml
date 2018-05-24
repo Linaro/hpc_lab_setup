@@ -96,6 +96,11 @@
                             vendor='cavium'
                             ;;
                         esac
+                        if [[ ${compiler} = *"http://"* ]] || [[ ${compiler} = *"ftp://"* ]]; then
+                                ${JENKINS_HOME}/scripts/tarball_cacher.py ${compiler} /tmp/ --upload=sftp://10.40.0.13/toolchains
+                                file=$(basename ${compiler})
+                                compiler="sftp://10.40.0.13/toolchains/${file}"
+                        fi
                         cat << EOF > benchmark_job.yml
                         mr_provisioner_url: http://10.40.0.11:5000
                         mr_provisioner_token: $(cat "/home/${NODE_NAME}/mrp_token")
