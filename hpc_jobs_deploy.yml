@@ -45,6 +45,7 @@
                     mode: u=rx,g=rx,o=rwx
             with_items:
                     - "files/provisioning.py"
+                    - "files/tarball_cacher.py"
 
           - name: Create jenkins_slave group to keep them from unionizing
             group:
