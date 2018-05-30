@@ -36,8 +36,12 @@
                          description: 'The MrP name of the machine to provision'
                  - string:
                          name: job_type
-                         default: 'Debian'
+                         default: 'benchmark'
                          description: 'The job type you will execute on the machine'
+                 - string:
+                         name: os_type
+                         default: 'Debian'
+                         description: 'The os type the machine will be provisioned with'
                  - string:
                          name: kernel_desc
                          default: ''

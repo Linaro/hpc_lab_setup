@@ -8,3 +8,7 @@ list_preseeds:
       description: "CentOS"
       type: "kickstart"
       path: "./files/preseeds/Centos.kickstart"
+    - name: "CentOS Upstream"
+      description: "CentOS Upstream"
+      type: "kickstart"
+      path: "./files/preseeds/Centos-Upstream.kickstart"
