@@ -212,6 +212,7 @@
           - vars/jslaves-openhpc.yml
   tasks:
           - include_tasks: ./tasks/setup_sftp.yml
+          - include_tasks: ./tasks/cacher_repo_ans_setup.yml
 
 - hosts: localhost
   gather_facts: no

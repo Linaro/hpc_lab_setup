@@ -1,0 +1,46 @@
+---
+- name: Install apt-cacher-ng
+  apt:
+          name: apt-cacher-ng
+          update_cache: yes
+
+- name: Install curl
+  apt:
+          name: curl
+          
+- name: Get the mirrors list for CentOS
+  shell: curl https://www.centos.org/download/full-mirrorlist.csv | sed 's/^.*"http:/http:/' | sed 's/".*$//' | grep ^http >/etc/apt-cacher-ng/centos_mirrors
+
+- name: Get the mirror for OpenHPC
+  shell: echo "http://build.openhpc.community/OpenHPC:/" > /etc/apt-cacher-ng/openhpc_mirrors
+
+- name: Add the centos mirrors to the merging mechanism
+  lineinfile:
+          path: /etc/apt-cacher-ng/acng.conf
+          regexp: '^Remap-centos:*'
+          line: 'Remap-centos: file:centos_mirrors /centos'
+          insertafter: '^Remap-gentoo:*'
+
+- name: Add the openhpc mirrors to the merging mechanism
+  lineinfile:
+          path: /etc/apt-cacher-ng/acng.conf
+          regexp: '^Remap-openhpc:*'
+          line: 'Remap-openhpc: file:openhpc_mirrors /openhpc'
+          insertafter: '^Remap-centos:*'
+
+- name: Add the regexp for matching URL of packages to cache
+  lineinfile:
+          path: /etc/apt-cacher-ng/acng.conf
+          regexp: '^VfilePatternEx:*'
+          line: 'VfilePatternEx: (^/\?release=[0-9]+&arch=|^/\[1-9].[1-9]/\updates/\CentOS_7/\.*)'
+          insertafter: '^# VfilePatternEx:'
+
+- name: Add pass through pattern for SSL connections
+  lineinfile:
+          path: /etc/apt-cacher-ng/acng.conf
+          regexp: '^PassThroughPattern'
+          line: 'PassThroughPattern: mirrors\.fedoraproject\.org'
+          insertafter: '^# PassThroughPattern: ^bugs.debian.org:443$'
+
+- name: Restart apt-cacher-ng
+  shell: systemctl restart apt-cacher-ng.service
