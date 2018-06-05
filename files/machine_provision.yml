@@ -35,6 +35,10 @@
                          default: ''
                          description: 'The MrP name of the machine to provision'
                  - string:
+                         name: machine_list
+                         default: ''
+                         description: 'The list of the MrP names of the machine_subarch to provision'
+                 - string:
                          name: job_type
                          default: 'benchmark'
                          description: 'The job type you will execute on the machine'
@@ -80,7 +84,12 @@
                         set -ex
 
                         # Defaults
-                        machine_name="hpc-${machine_type}-${job_type}"
+                        if [[ ${machine_list} == '' ]]; then
+                                machine_name="hpc-${machine_type}-${job_type}"
+                        else
+                                machine_list="$( echo "$machine_list"| tr -d '[:space:]')"
+                                machine_name=${machine_list}
+                        fi
                         machine_arch=AArch64
                         machine_subarch=Grub
 

@@ -5,10 +5,10 @@ import sys
 
 
 class ProvisioningJobMaker(object):
-    def __init__(self, working_dirp, machine_name, provisioner_url,
+    def __init__(self, working_dirp, machine_list, provisioner_url,
                  provisioner_token):
         self.working_dir = working_dirp
-        self.machine = machine_name
+        self.machine_list = machine_list.split(',')
         self.provurl = provisioner_url
         self.token = provisioner_token
 
@@ -35,9 +35,10 @@ class ProvisioningJobMaker(object):
                           '/dev/null', initrd_path = '/dev/null', preseed_path
                          = '/dev/null'):
         playbook="""
+{% for machine in machine_list %}
 - hosts: localhost
   vars:
-          mr_provisioner_machine_name: "{{mname}}"
+          mr_provisioner_machine_name: "{{machine}}"
           mr_provisioner_kernel_description: "{{kdesc}}"
           mr_provisioner_initrd_description: "{{irddesc}}"
           mr_provisioner_kernel_path: "{{kpath}}"
@@ -52,6 +53,7 @@ class ProvisioningJobMaker(object):
           mr_provisioner_subarch: "{{subarch}}"
   roles:
           - role: ansible-role-provision-mr-provisioner
+{% endfor %}
 
 - hosts: mr_provisioner_hosts
   remote_user: root
@@ -67,7 +69,7 @@ class ProvisioningJobMaker(object):
 
         playbook_template = jinja2.Template(playbook)
         rendered_playbook = playbook_template.render({
-            'mname': self.machine,
+            'machine_list': self.machine_list,
             'kdesc': kernel_desc,
             'irddesc': initrd_desc,
             'kpath': kernel_path,
@@ -82,7 +84,7 @@ class ProvisioningJobMaker(object):
             'subarch': machine_subarch
         })
 
-        name = 'provisioning' + self.machine + '.yml'
+        name = 'provisioning' + self.machine_list[0] + '.yml'
         file_playbook_path = os.path.join(self.working_dir, name)
         file_playbook = open(file_playbook_path, 'w')
         file_playbook.write(rendered_playbook)
