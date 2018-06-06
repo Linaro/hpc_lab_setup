@@ -1,0 +1,223 @@
+ - job:
+         name: ohpc_install
+         description: "This is the job to install OpenHPC on a cluster"
+         project-type: freestyle
+         block-downstream: false
+         concurrent: true
+         properties:
+                 - authorization:
+                         hpc-sig-admin:
+                                 - credentials-create
+                                 - credentials-delete
+                                 - credentials-manage-domains
+                                 - credentials-update
+                                 - credentials-view
+                                 - job-build
+                                 - job-cancel
+                                 - job-configure
+                                 - job-delete
+                                 - job-discover
+                                 - job-move
+                                 - job-read
+                                 - job-status
+                                 - job-workspace
+                                 - ownership-jobs
+                                 - run-delete
+                                 - run-update
+                                 - scm-tag
+                         hpc-sig-devel:
+                                 - job-build
+                                 - job-read
+         parameters:
+                 - node:
+                         name: node
+                         default: ''
+                         description: 'Node on which to execute this job'
+                 - choice:
+                         name: cluster
+                         choices:
+                                 - d05
+                                 - qdc
+                         default: 'qdc'
+                         description: 'The MrP type of the machine to be provisioned'
+                 - choice:
+                         name: method
+                         choices:
+                                 - stateful
+                                 - stateless
+                         default: 'stateful'
+                         description: 'The type of OHPC install to do'
+                 - string:
+                         name: ohpc_recipe_repo
+                         default: 'BaptisteGerondeau'
+                         description: 'The git repo to use for getting the ohpc recipe'
+                 - string:
+                         name: git_branch
+                         default: 'bger'
+                         description: 'Branch name of the ohpc install recipe'
+                 - string:
+                         name: slurmconf
+                         default: ''
+                         description: 'An ftp address to the slurm.conf file to use'
+         builders:
+                 - shell: |
+                        #!/bin/bash
+                        set -ex
+                        cd ${WORKSPACE}
+                        eval `ssh-agent`
+                        ssh-add
+                                
+                        if [ -d mr-provisioner-client ]; then
+                            rm -rf mr-provisioner-client
+                        fi
+                        git clone https://github.com/Linaro/mr-provisioner-client.git
+                        arch='aarch64'
+                        mr_provisioner_url='http://10.40.0.11:5000'
+                        mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
+
+                        if [ ${cluster} == 'qdc' ]; then
+                                master_name='hpc_qdc_openhpc'
+                                cnode01='hpc_qdc_compute01'
+                                cnode02='hpc_qdc_compute02'
+                                cnode03='hpc_qdc_compute03'
+                                master_eth_internal='eth0'
+                                eth_provision='eth0'
+                                num_compute='3'
+                                master_ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-qdc-openhpc --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-qdc-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode01mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-qdc-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-qdc-compute-02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode02mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-qdc-compute-02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-qdc-compute-03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode03mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-qdc-compute-03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                compute_prefix='hpc_qdc_compute0'
+                                compute_regex='hpc_qdc_compute0[1-3]'
+                                kargs=''
+                                additional_modules='qcom_emac'
+                        elif [ ${cluster} == 'd05' ]; then
+                                master_name='hpc_d05_openhpc'
+                                cnode01='hpc_d03_compute01'
+                                cnode02='hpc_d03_compute02'
+                                cnode03='hpc_d03_compute03'
+                                sms_if='enahisic2i1'
+                                slave_if='enahisic2i1'
+                                nb_compute='3' 
+                                master_ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d05-openhpc --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d03-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode01mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-d03-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d03-compute-02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode02mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-d03-compute-02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d03-compute-03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode03mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-d03-compute-03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                compute_prefix='hpc_d03_compute0'
+                                compute_regex='hpc_d03_compute0[1-3]'
+                                kargs=''
+                        fi
+
+                        if [ ${method} == 'stateful' ]; then
+                                internal_network='10.40.0.0'
+                                internal_netmask='255.255.0.0'
+                                internal_broadcast='10.40.255.255'
+                                internal_gateway='10.40.0.1'
+                                internal_dns=${internal_gateway}
+                                internal_domain_name=''
+                                # Enable components optionis
+                                enable_beegfs_client=False
+                                enable_mpi_defaults=True
+                                enable_mpi_opa=False
+                                enable_clustershell=True
+                                enable_ipmisol=False
+                                enable_opensm=False
+                                enable_ipoib=False
+                                enable_ganglia=False
+                                enable_genders=False
+                                enable_kargs=False
+                                enable_lustre_client=False
+                                enable_mrsh=False
+                                enable_nagios=False
+                                enable_powerman=False
+                                enable_intel_packages=False
+                                enable_dhcpd_server=False
+                                enable_ifup=False
+                                enable_warewulf=False
+                                enable_nfs_ohpc=True
+                                enable_nfs_home=True
+
+                        else
+                                echo 'Not implemented yet !!'
+                        fi
+                        
+                        if [ -d ansible-playbook-for-ohpc ]; then
+                            rm -rf ansible-playbook-for-ohpc
+                        fi
+                        git clone -b ${git_branch} https://github.com/${ohpc_recipe_repo}/ansible-playbook-for-ohpc.git
+
+
+                        # Retrieve the slurm.conf file
+                        if [ ${slurmconf} != '' ]; then
+                                olddir=$(pwd)
+                                cd ansible-playbook-for-ohpc/roles/slurm-client/files
+                                sftp 10.40.0.13:${sftpconf}
+                                cd ${olddir}
+                        fi
+
+                        cat << EOF > hosts
+                        [sms]
+                        ${master_ip}
+                        [cnodes]
+                        ${cnode01ip}
+                        ${cnode02ip}
+                        ${cnode03ip}
+                        [ionodes]
+                        ${master_ip}
+                        [devnodes]
+                        ${master_ip}
+                        EOF
+
+
+                        cat << EOF > ohpc_installation.yml
+                        sms_name: ${master_name}
+                        sms_ip: ${master_ip}
+                        sms_eth_internal: ${master_eth_internal}
+                        internal_network: ${internal_network}
+                        internal_netmask: ${internal_netmask}
+                        internal_broadcast: ${internal_broadcast}
+                        internal_gateway: ${internal_gateway}
+                        internal_domain_name: ${internal_domain_name}
+                        internal_domain_name_servers: ${internal_dns}
+                        eth_provision: ${eth_provision}
+                        cnode_eth_internal: ${eth_provision}
+                        enable_beegfs_client: ${enable_beegfs_client}
+                        enable_mpi_defaults: ${enable_mpi_defaults} 
+                        enable_mpi_opa: ${enable_mpi_opa}
+                        enable_clustershell: ${enable_clustershell}
+                        enable_ipmisol: ${enable_ipmisol}
+                        enable_opensm: ${enable_opensm}
+                        enable_ipoib: ${enable_ipoib}
+                        enable_ganglia: ${enable_ganglia}
+                        enable_genders: ${enable_genders}
+                        enable_kargs: ${enable_kargs}
+                        enable_lustre_client: ${enable_lustre_client}
+                        enable_mrsh: ${enable_mrsh}
+                        enable_nagios: ${enable_nagios}
+                        enable_powerman: ${enable_powerman}
+                        enable_intel_packages: ${enable_intel_packages}
+                        enable_dhcpd_server: ${enable_dhcpd_server}
+                        enable_ifup: ${enable_ifup}
+                        enable_warewulf: ${enable_warewulf}
+                        enable_nfs_ohpc: ${enable_nfs_ohpc}
+                        enable_nfs_home: ${enable_nfs_home}
+                        kargs: ${kargs}
+                        additional_modules: ${additional_modules}
+                        num_computes: ${num_compute}
+                        compute_regex: ${compute_regex}
+                        compute_prefix: ${compute_prefix}
+                        compute_nodes:
+                        - { num: 1, c_name: "${cnode01}", c_ip: "${cnode01ip}", c_mac: "${cnode01mac}", c_bmc: "10.41.1.0"}
+                        - { num: 2, c_name: "${cnode02}", c_ip: "${cnode02ip}", c_mac: "${cnode02mac}", c_bmc: "10.41.1.0"}
+                        - { num: 3, c_name: "${cnode03}", c_ip: "${cnode03ip}", c_mac: "${cnode03mac}", c_bmc: "10.41.1.0"}
+                        EOF
+
+                        cd ansible-playbook-for-ohpc
+                        ansible-playbook site.yml --extra-vars="@../ohpc_installation.yml" -i ../hosts
+                        ssh-agent -k 

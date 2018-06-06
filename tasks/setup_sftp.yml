@@ -74,6 +74,7 @@
     - benchmark
     - openhpc
     - toolchains
+    - conffiles
 
 - name: Set GID bit on the results and toolchain dir
   shell: "chmod g+s /var/results/{{ item }}"
@@ -81,6 +82,7 @@
     - benchmark
     - openhpc
     - toolchains
+    - conffiles
 
 - name: Put the right ACL permissions on the results dirs
   include_tasks: ./tasks/set_acl_results.yml
@@ -104,6 +106,16 @@
   vars:
     jslaves: "{{ jslaves_openhpc }}"
     
+- name: Put the right ACL permissions on the conffiles dir
+  include_tasks: ./tasks/set_acl_conffiles.yml
+  vars:
+    jslaves: "{{ jslaves_benchmark }}"
+
+- name: Put the right ACL permissions on the conffiles dirs
+  include_tasks: ./tasks/set_acl_conffiles.yml
+  vars:
+    jslaves: "{{ jslaves_openhpc }}"
+
 - name: Copy sshd_config
   template:
          src: "./templates/sshd_config.j2"
