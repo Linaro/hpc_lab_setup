@@ -1,0 +1,44 @@
+---
+- name: Give proper ACL permissions
+  acl:
+         path: "/var/results/conffiles"
+         entity: "{{ item }}"
+         etype: group
+         permissions: rx
+         default: no
+         state: present
+  with_items:
+         - "{{ vendors_list }}"
+
+- name: Give proper ACL permissions
+  acl:
+         path: "/var/results/conffiles"
+         entity: "{{ item }}"
+         etype: group
+         permissions: r
+         default: yes
+         state: present
+  with_items:
+         - "{{ vendors_list }}"
+
+- name: Give proper ACL permissions
+  acl:
+         path: "/var/results/conffiles"
+         entity: "jslave-{{ item.cgroup }}"
+         etype: group
+         permissions: rwx
+         default: no
+         state: present
+  with_items:
+   - "{{ jslaves }}"
+
+- name: Give proper ACL permissions
+  acl:
+         path: "/var/results/conffiles"
+         entity: "jslave-{{ item.cgroup }}"
+         etype: group
+         permissions: rw
+         default: yes
+         state: present
+  with_items:
+   - "{{ jslaves }}"

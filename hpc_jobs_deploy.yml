@@ -201,6 +201,7 @@
                     - machine_provision
                     - os_provision
                     - benchmark_job
+                    - ohpc_install
 
 - hosts: fileserver
   vars:
