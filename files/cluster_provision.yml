@@ -1,0 +1,89 @@
+ - job:
+         name: cluster_provision
+         description: "This is the job to provision a cluster using MrP"
+         project-type: freestyle
+         block-downstream: false
+         concurrent: true
+         node: "master"
+         properties:
+                 - authorization:
+                         hpc-sig-admin:
+                                 - credentials-create
+                                 - credentials-delete
+                                 - credentials-manage-domains
+                                 - credentials-update
+                                 - credentials-view
+                                 - job-build
+                                 - job-cancel
+                                 - job-configure
+                                 - job-delete
+                                 - job-discover
+                                 - job-move
+                                 - job-read
+                                 - job-status
+                                 - job-workspace
+                                 - ownership-jobs
+                                 - run-delete
+                                 - run-update
+                                 - scm-tag
+                         hpc-sig-devel:
+                                 - job-build
+                                 - job-read
+         parameters:
+                 - choice:
+                         name: machine_type
+                         choices:
+                                 - d05
+                                 - qdc
+                         default: 'qdc'
+                         description: 'The cluster of machines to be provisioned'
+         builders:
+                 - shell: |
+                        #!/bin/bash
+                        set -ex
+
+                        if [ ${machine_type} == "qdc" ]; then
+                                machine_list="hpc-qdc-openhpc, hpc-qdc-compute-01, hpc-qdc-compute-02, hpc-qdc-compute-03"
+                                preseed_type="kickstart"
+                                kernel_desc="CentOS 7.5"
+                                initrd_desc="CentOS 7.5"
+                                preseed_name="CentOS Upstream"
+                                kernel_opts="ip=dhcp text inst.stage2=http://mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                        elif [ ${machine_type} == "d05" ]; then
+                                machine_list="hpc-d05-openhpc, hpc-d03-compute-01, hpc-d03-compute-02, hpc-d03-compute-03"
+                                preseed_type="kickstart"
+                                kernel_desc="CentOS ERP 119"
+                                initrd_desc="CentOS ERP 119"
+                                preseed_name="CentOS"
+                                kernel_opts="ip=dhcp text inst.stage2=http://snapshots.linaro.org/96boards/reference-platform/components/centos-installer/119/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                        fi
+
+                        # Chose known good kernel/initrd/cmdline
+
+                        # Build trigger machine_provision job
+                        cat << EOF > machine_provision
+                        machine_list=${machine_list}
+                        os_type=${os_type}
+                        machine_type=${machine_type}
+                        job_type=openhpc
+                        kernel_desc=${kernel_desc}
+                        initrd_desc=${initrd_desc}
+                        preseed_name=${preseed_name}
+                        preseed_type=${preseed_type}
+                        kernel_opts=${kernel_opts}
+                        kernel_path=
+                        initrd_path=
+                        preseed_path=
+                        EOF
+
+                 - conditional-step:
+                         condition-kind: file-exists
+                         condition-filename: machine_provision
+                         steps:
+                                 - trigger-builds:
+                                         - project: 'machine_provision'
+                                           property-file: machine_provision
+                                           current-parameters: true
+                                           node-label-name: "master"
+                                           node-label: "master"
+                                           block: true
