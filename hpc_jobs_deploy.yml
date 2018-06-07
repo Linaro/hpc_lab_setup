@@ -193,6 +193,7 @@
                     - machine_provision
                     - os_provision
                     - benchmark_job
+                    - ohpc_install
 
           - name: Create jobs in Jenkins
             shell: "jenkins-jobs update /var/lib/jenkins/scripts/{{ item }}.yml"

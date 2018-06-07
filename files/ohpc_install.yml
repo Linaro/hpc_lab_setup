@@ -157,7 +157,7 @@
                         if [ ${slurmconf} != '' ]; then
                                 olddir=$(pwd)
                                 cd ansible-playbook-for-ohpc/roles/slurm-client/files
-                                sftp 10.40.0.13:${sftpconf}
+                                sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no 10.40.0.13:${slurmconf}
                                 cd ${olddir}
                         fi
 
