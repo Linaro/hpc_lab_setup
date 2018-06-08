@@ -220,6 +220,4 @@
 
                         cd ansible-playbook-for-ohpc
                         ansible-playbook site.yml --extra-vars="@../ohpc_installation.yml" -i ../hosts
-
-                        ssh root@${master_ip} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "useradd -m test ; pdsh -w ${compute_regex} useradd -m test ; su - test ; mpicc -O3 /opt/ohpc/pub/examples/mpi/hello.c ; srun -n 8 -N 3 /home/test/a.out"
                         ssh-agent -k 
