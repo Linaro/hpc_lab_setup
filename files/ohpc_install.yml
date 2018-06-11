@@ -99,9 +99,9 @@
                                 cnode01='hpc_d03_compute01'
                                 cnode02='hpc_d03_compute02'
                                 cnode03='hpc_d03_compute03'
-                                sms_if='enahisic2i1'
-                                slave_if='enahisic2i1'
-                                nb_compute='3' 
+                                master_eth_internal='enahisic2i1'
+                                eth_provision='enahisic2i1'
+                                num_compute='3' 
                                 master_ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d05-openhpc --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
                                 cnode01ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d03-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
                                 cnode01mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-d03-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
@@ -158,6 +158,7 @@
                                 olddir=$(pwd)
                                 cd ansible-playbook-for-ohpc/roles/slurm-client/files
                                 sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no 10.40.0.13:${slurmconf}
+                                mv $(basename ${slurmconf}) slurm.conf
                                 cd ${olddir}
                         fi
 
