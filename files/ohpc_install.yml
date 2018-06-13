@@ -36,9 +36,9 @@
                  - choice:
                          name: cluster
                          choices:
-                                 - d05
-                                 - qdc
-                         default: 'qdc'
+                                 - huawei
+                                 - qualcomm
+                         default: 'qualcomm'
                          description: 'The MrP type of the machine to be provisioned'
                  - choice:
                          name: method
@@ -48,12 +48,8 @@
                          default: 'stateful'
                          description: 'The type of OHPC install to do'
                  - string:
-                         name: ohpc_recipe_repo
-                         default: 'BaptisteGerondeau'
-                         description: 'The git repo to use for getting the ohpc recipe'
-                 - string:
                          name: git_branch
-                         default: 'bger'
+                         default: 'production'
                          description: 'Branch name of the ohpc install recipe'
                  - string:
                          name: slurmconf
@@ -75,7 +71,7 @@
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
 
-                        if [ ${cluster} == 'qdc' ]; then
+                        if [ ${cluster} == 'qualcomm' ]; then
                                 master_name='hpc_qdc_openhpc'
                                 cnode01='hpc_qdc_compute01'
                                 cnode02='hpc_qdc_compute02'
@@ -94,7 +90,7 @@
                                 compute_regex='hpc_qdc_compute0[1-3]'
                                 kargs=''
                                 additional_modules='qcom_emac'
-                        elif [ ${cluster} == 'd05' ]; then
+                        elif [ ${cluster} == 'huawei' ]; then
                                 master_name='hpc_d05_openhpc'
                                 cnode01='hpc_d03_compute01'
                                 cnode02='hpc_d03_compute02'
@@ -150,7 +146,7 @@
                         if [ -d ansible-playbook-for-ohpc ]; then
                             rm -rf ansible-playbook-for-ohpc
                         fi
-                        git clone -b ${git_branch} https://github.com/${ohpc_recipe_repo}/ansible-playbook-for-ohpc.git
+                        git clone -b ${git_branch} https://github.com/Linaro/ansible-playbook-for-ohpc.git
 
 
                         # Retrieve the slurm.conf file
