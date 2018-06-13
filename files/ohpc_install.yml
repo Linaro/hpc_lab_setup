@@ -138,6 +138,7 @@
                                 enable_warewulf=False
                                 enable_nfs_ohpc=True
                                 enable_nfs_home=True
+                                enable_helloworld=True
 
                         else
                                 echo 'Not implemented yet !!'
@@ -204,6 +205,7 @@
                         enable_warewulf: ${enable_warewulf}
                         enable_nfs_ohpc: ${enable_nfs_ohpc}
                         enable_nfs_home: ${enable_nfs_home}
+                        enable_helloworld: ${enable_helloworld}
                         kargs: ${kargs}
                         additional_modules: ${additional_modules}
                         num_computes: ${num_compute}
@@ -218,6 +220,4 @@
                         cd ansible-playbook-for-ohpc
                         ansible-playbook site.yml --extra-vars="@../ohpc_installation.yml" -i ../hosts
 
-                        PDSH_SSH_ARGS_APPEND="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/cluster.pub"
-                        ssh root@${master_ip} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "useradd -m test ; pdsh -w ${compute_regex} useradd -m test ; su - test ; mpicc -O3 /opt/ohpc/pub/examples/mpi/hello.c ; srun -n 8 -N 3 /home/test/a.out"
                         ssh-agent -k 
