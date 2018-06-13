@@ -138,6 +138,7 @@
                                 enable_warewulf=False
                                 enable_nfs_ohpc=True
                                 enable_nfs_home=True
+                                enable_helloworld=True
 
                         else
                                 echo 'Not implemented yet !!'
@@ -204,6 +205,7 @@
                         enable_warewulf: ${enable_warewulf}
                         enable_nfs_ohpc: ${enable_nfs_ohpc}
                         enable_nfs_home: ${enable_nfs_home}
+                        enable_helloworld: ${enable_helloworld}
                         kargs: ${kargs}
                         additional_modules: ${additional_modules}
                         num_computes: ${num_compute}
@@ -217,4 +219,5 @@
 
                         cd ansible-playbook-for-ohpc
                         ansible-playbook site.yml --extra-vars="@../ohpc_installation.yml" -i ../hosts
+
                         ssh-agent -k 
