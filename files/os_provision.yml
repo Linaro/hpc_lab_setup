@@ -41,9 +41,9 @@
                  - choice:
                          name: job_type
                          choices:
-                                 - benchmark
-                                 - openhpc
-                         default: 'benchmark'
+                                 - bench
+                                 - ohpc
+                         default: 'bench'
                          description: 'The job type you will execute on the machine'
                  - choice:
                          name: os_type

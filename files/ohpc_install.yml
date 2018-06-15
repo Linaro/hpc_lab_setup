@@ -72,41 +72,41 @@
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
 
                         if [ ${cluster} == 'qualcomm' ]; then
-                                master_name='hpc_qdc_openhpc'
-                                cnode01='hpc_qdc_compute01'
-                                cnode02='hpc_qdc_compute02'
-                                cnode03='hpc_qdc_compute03'
+                                master_name='qdcohpc'
+                                cnode01='qdc01'
+                                cnode02='qdc02'
+                                cnode03='qdc03'
                                 master_eth_internal='eth0'
                                 eth_provision='eth0'
                                 num_compute='3'
-                                master_ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-qdc-openhpc --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-qdc-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode01mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-qdc-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-qdc-compute-02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode02mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-qdc-compute-02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-qdc-compute-03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode03mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-qdc-compute-03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                compute_prefix='hpc_qdc_compute0'
-                                compute_regex='hpc_qdc_compute0[1-3]'
+                                master_ip=$( ./mr-provisioner-client/mrp_client.py getip qdcohpc --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py getip qdc01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode01mac=$( ./mr-provisioner-client/mrp_client.py getmac qdc01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py getip qdc02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode02mac=$( ./mr-provisioner-client/mrp_client.py getmac qdc02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py getip qdc03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode03mac=$( ./mr-provisioner-client/mrp_client.py getmac qdc03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                compute_prefix='qdc0'
+                                compute_regex='qdc0[1-3]'
                                 kargs=''
                                 additional_modules='qcom_emac'
                         elif [ ${cluster} == 'huawei' ]; then
-                                master_name='hpc_d05_openhpc'
-                                cnode01='hpc_d03_compute01'
-                                cnode02='hpc_d03_compute02'
-                                cnode03='hpc_d03_compute03'
+                                master_name='d05ohpc'
+                                cnode01='d0301'
+                                cnode02='d0302'
+                                cnode03='d0303'
                                 master_eth_internal='enahisic2i1'
                                 eth_provision='enahisic2i1'
                                 num_compute='3' 
-                                master_ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d05-openhpc --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d03-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode01mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-d03-compute-01 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d03-compute-02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode02mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-d03-compute-02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py getip hpc-d03-compute-03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                cnode03mac=$( ./mr-provisioner-client/mrp_client.py getmac hpc-d03-compute-03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                                compute_prefix='hpc_d03_compute0'
-                                compute_regex='hpc_d03_compute0[1-3]'
+                                master_ip=$( ./mr-provisioner-client/mrp_client.py getip d05ohpc --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py getip d0301 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode01mac=$( ./mr-provisioner-client/mrp_client.py getmac d0301 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py getip d0302 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode02mac=$( ./mr-provisioner-client/mrp_client.py getmac d0302 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py getip d0303 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                cnode03mac=$( ./mr-provisioner-client/mrp_client.py getmac d0303 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                                compute_prefix='d030'
+                                compute_regex='d030[1-3]'
                                 kargs=''
                         fi
 

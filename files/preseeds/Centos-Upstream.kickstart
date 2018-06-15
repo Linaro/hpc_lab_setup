@@ -1,11 +1,5 @@
 # Required Kernel options to install ERP CentOS7 build: 
 # ip=dhcp text inst.stage2=http://mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg
-%pre
-#!/bin/bash
-old_hostname={{ hostname }}
-host_name=$(echo "$old_hostname"| tr - _| sed -r 's/e_0/e0/g')
-echo "network --hostname=$host_name" > /tmp/hostname.ks
-%end
 # Use network installation
 url --url="http://mirror.centos.org/altarch/7/os/aarch64/" --proxy=http://10.40.0.13:3142
 repo --name="upstream" --baseurl=http://mirrors.coreix.net/centos-altarch/ --proxy=http://10.40.0.13:3142
@@ -24,8 +18,8 @@ timezone Europe/London
 rootpw --iscrypted !!
 
 # Network information
-network  --bootproto=dhcp
-%include "/tmp/hostname.ks"
+network --bootproto=dhcp
+network --hostname={{hostname}}
 
 # System services
 services --enabled="chronyd"

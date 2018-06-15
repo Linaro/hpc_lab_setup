@@ -40,7 +40,7 @@
                          description: 'The list of the MrP names of the machine_subarch to provision'
                  - string:
                          name: job_type
-                         default: 'benchmark'
+                         default: 'bench'
                          description: 'The job type you will execute on the machine'
                  - string:
                          name: os_type
@@ -85,7 +85,7 @@
 
                         # Defaults
                         if [[ ${machine_list} == '' ]]; then
-                                machine_name="hpc-${machine_type}-${job_type}"
+                                machine_name="${machine_type}${job_type}"
                         else
                                 machine_list="$( echo "$machine_list"| tr -d '[:space:]')"
                                 machine_name=${machine_list}
