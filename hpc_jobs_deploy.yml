@@ -194,6 +194,8 @@
                     - os_provision
                     - benchmark_job
                     - ohpc_install
+                    - ohpc_test_suite
+                    - cluster_provision
 
           - name: Create jobs in Jenkins
             shell: "jenkins-jobs update /var/lib/jenkins/scripts/{{ item }}.yml"
@@ -203,6 +205,8 @@
                     - os_provision
                     - benchmark_job
                     - ohpc_install
+                    - ohpc_test_suite
+                    - cluster_provision
 
 - hosts: fileserver
   vars:
