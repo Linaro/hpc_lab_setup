@@ -43,14 +43,14 @@
                         set -ex
 
                         if [ ${machine_type} == "qdc" ]; then
-                                machine_list="hpc-qdc-openhpc, hpc-qdc-compute-01, hpc-qdc-compute-02, hpc-qdc-compute-03"
+                                machine_list="qdcohpc, qdc01, qdc02, qdc03"
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS 7.5"
                                 initrd_desc="CentOS 7.5"
                                 preseed_name="CentOS Upstream"
                                 kernel_opts="ip=dhcp text inst.stage2=http://mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
                         elif [ ${machine_type} == "d05" ]; then
-                                machine_list="hpc-d05-openhpc, hpc-d03-compute-01, hpc-d03-compute-02, hpc-d03-compute-03"
+                                machine_list="d05ohpc, d0301, d0302, d0303"
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS ERP 119"
                                 initrd_desc="CentOS ERP 119"

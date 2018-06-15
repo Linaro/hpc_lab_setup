@@ -104,7 +104,7 @@
                         cat << EOF > benchmark_job.yml
                         mr_provisioner_url: http://10.40.0.11:5000
                         mr_provisioner_token: $(cat "/home/${NODE_NAME}/mrp_token")
-                        mr_provisioner_machine_name: hpc-${machine_type}-benchmark
+                        mr_provisioner_machine_name: ${machine_type}bench
                         sftp_dirname: ${machine_type}-${BUILD_NUMBER}
                         sftp_user: ${NODE_NAME}
                         sftp_server_ip: 10.40.0.13
