@@ -22,7 +22,7 @@
             shell: runuser -l jenkins -c "ssh-keygen -f /var/lib/jenkins/.ssh/id_rsa -t rsa -N ''"
             when: sshkey.stat.exists == False
 
-          - name: Lookup executes locally.... Let's use slurp then
+          - name: Caches the public key
             slurp:
                 src: /var/lib/jenkins/.ssh/id_rsa.pub
             register: master_key
@@ -55,6 +55,7 @@
           - include_tasks: ./tasks/create_slaves.yml
             vars:
                     master_sshkey: "{{ master_key['content'] | b64decode }}"
+                    key_path: "/var/lib/jenkins/.ssh/id_rsa"
 
           - include_vars:
                   file: ./vars/jenkins_cred.yml.secret
