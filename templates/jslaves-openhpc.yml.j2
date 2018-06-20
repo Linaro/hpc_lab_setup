@@ -1,6 +1,6 @@
 ---
 jslaves_openhpc:
-{% for item in jslave_list|select("match", ".*openhpc.*") %}
+{% for item in jslave_list|select("match", ".*ohpc.*") %}
     - name: {{ item }}
 {% if item is match(".*qdc.*") %}
       cgroup: qualcomm

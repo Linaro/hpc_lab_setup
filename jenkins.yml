@@ -3,14 +3,14 @@
   remote_user: root
   vars:
           jslave_list:
-                  - "jslave-d03-openhpc"
-                  - "jslave-d03-benchmark"
-                  - "jslave-d05-openhpc" 
-                  - "jslave-d05-benchmark"
-                  - "jslave-tx2-openhpc"
-                  - "jslave-tx2-benchmark"
-                  - "jslave-qdc-openhpc"
-                  - "jslave-qdc-benchmark"
+                  - "d03ohpc"
+                  - "d03bench"
+                  - "d05ohpc"
+                  - "d05bench"
+                  - "tx2ohpc"
+                  - "tx2bench"
+                  - "qdcohpc"
+                  - "qdcbench"
 
   tasks:
           - name: Check that Jenkins master has an SSH key
@@ -207,38 +207,3 @@
                     - ohpc_install
                     - ohpc_test_suite
                     - cluster_provision
-
-- hosts: fileserver
-  vars:
-    test_ssh_key: 
-  vars_files:
-          - vars/vendors.yml
-          - vars/users.yml
-          - vars/jslaves-benchmark.yml
-          - vars/jslaves-openhpc.yml
-  tasks:
-          - include_tasks: ./tasks/setup_sftp.yml
-          - include_tasks: ./tasks/cacher_repo_ans_setup.yml
-
-- hosts: localhost
-  gather_facts: no
-  vars:
-         mr_provisioner_do_provision: False
-         mr_provisioner_url: "http://10.40.0.11:5000"
-  vars_files:
-          - vars/mrp_creds.yml.secret
-          - vars/list_preseeds.yml
-  roles:
-          - role: ansible-role-mr-provisioner
-  tasks:
-          - name: Upload preseed from info in list_preseed.yml
-            mr_provisioner_preseed:
-                    name: "{{ item.name }}"
-                    description: "{{ item.description }}"
-                    type: "{{ item.type }}"
-                    path: "{{ item.path }}"
-                    url: "{{ mr_provisioner_url }}"
-                    token: "{{ mr_provisioner_auth_token }}"
-                    public: "{{ item.public | default(true) }}"
-                    known_good: "{{ item.known_good | default(true) }}"
-            with_items: "{{ list_preseeds }}"

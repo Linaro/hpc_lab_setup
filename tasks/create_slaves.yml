@@ -27,7 +27,7 @@
 - name: Get the template back
   fetch:
     src: "/tmp/{{ item }}"
-    dest: ./vars/
+    dest: "./vars/{{ item }}.secret"
     flat: yes
   with_items:
         - jslaves-benchmark.yml
