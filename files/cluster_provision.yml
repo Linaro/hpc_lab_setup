@@ -65,7 +65,7 @@
                         machine_list=${machine_list}
                         os_type=${os_type}
                         machine_type=${machine_type}
-                        job_type=openhpc
+                        job_type=ohpc
                         kernel_desc=${kernel_desc}
                         initrd_desc=${initrd_desc}
                         preseed_name=${preseed_name}

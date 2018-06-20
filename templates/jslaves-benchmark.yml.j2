@@ -1,6 +1,6 @@
 ---
 jslaves_benchmark:
-{% for item in jslave_list|select("match", ".*benchmark.*") %}
+{% for item in jslave_list|select("match", ".*bench.*") %}
     - name: {{ item }}
 {% if item is match(".*qdc.*") %}
       cgroup: qualcomm

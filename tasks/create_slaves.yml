@@ -3,13 +3,20 @@
   user:
           name: "{{ item }}"
           shell: "/bin/bash"
-          generate_ssh_key: yes
+          generate_ssh_key: no
           group: "jenkins_slave"
+  with_list: "{{ jslave_list }}"
+
+- name: Copy the ssh_keys from the remote
+  copy:
+      src: "{{ key_path }}"
+      dest: "/home/{{ item }}/.ssh/id_rsa"
+      remote_src: yes
   with_list: "{{ jslave_list }}"
 
 - name: Fetch the ssh_keys from the remote
   fetch:
-      src: "/home/{{ item }}/.ssh/id_rsa.pub"
+      src: "{{ key_path }}.pub"
       dest: "./templates/{{ item }}.sshkey"
       flat: yes
   with_list: "{{ jslave_list }}"
@@ -27,7 +34,7 @@
 - name: Get the template back
   fetch:
     src: "/tmp/{{ item }}"
-    dest: ./vars/
+    dest: "./vars/{{ item }}.secret"
     flat: yes
   with_items:
         - jslaves-benchmark.yml
@@ -38,13 +45,6 @@
           user: "{{ item }}"
           state: present
           key: "{{ master_sshkey }}" 
-  with_list: "{{ jslave_list }}"
-
-- name: Add their own key to their authorized list
-  authorized_key:
-          user: "{{ item }}"
-          state: present
-          key: "{{ lookup('file', 'templates/{{ item }}.sshkey') }}"
   with_list: "{{ jslave_list }}"
 
 - name: Copy the playbook maker script to their home dir

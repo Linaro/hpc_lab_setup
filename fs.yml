@@ -1,0 +1,12 @@
+---
+- hosts: fileserver
+  vars:
+    test_ssh_key: 
+  vars_files:
+          - vars/vendors.yml
+          - vars/users.yml
+          - vars/jslaves-benchmark.yml.secret
+          - vars/jslaves-openhpc.yml.secret
+  tasks:
+          - include_tasks: ./tasks/setup_sftp.yml
+          - include_tasks: ./tasks/cacher_repo_ans_setup.yml

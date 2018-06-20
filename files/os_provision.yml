@@ -61,9 +61,9 @@
 
                         # Chose default OS
                         if [ "${os_type}" == "default" ]; then
-                          if [ "${job_type}" == "benchmark" ]; then
+                          if [ "${job_type}" == "bench" ]; then
                             os_type=debian
-                          elif [ "${job_type}" == "openhpc" ]; then
+                          elif [ "${job_type}" == "ohpc" ]; then
                             os_type=centos
                           else
                             echo "Not Implemented Yet!!!!"

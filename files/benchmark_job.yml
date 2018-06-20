@@ -80,20 +80,22 @@
                         eval `ssh-agent`
                         ssh-add
 
-                        if [[ ${NODE_NAME} =~ -(.+)- ]]; then
-                                machine_type=${BASH_REMATCH[1]}
-                        else
-                                echo "Node Name is wrong"
-                        fi
-                        case ${machine_type} in
-                        [d0]*)
+                        case ${node} in
+                        d03*)
                             vendor='huawei'
+                            machine_type=d03
                             ;;
-                        [qdc])
+                        d05*)
+                            vendor='huawei'
+                            machine_type=d05
+                            ;;
+                        qdc*)
                             vendor='qualcomm'
+                            machine_type=qdc
                             ;;
-                        [tx]*)
+                        tx*)
                             vendor='cavium'
+                            machine_type=tx2
                             ;;
                         esac
                         if [[ ${compiler} = *"http://"* ]] || [[ ${compiler} = *"ftp://"* ]]; then
