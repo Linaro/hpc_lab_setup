@@ -41,7 +41,7 @@ d-i netcfg/hostname string "{{hostname}}"
 d-i mirror/country string UK
 d-i mirror/http/hostname string ftp.uk.debian.org
 d-i mirror/http/directory string /debian
-d-i mirror/http/proxy string
+d-i mirror/http/proxy string http://10.40.0.13:3142/
 
 # Account setup
 d-i passwd/root-password-crypted password !!
