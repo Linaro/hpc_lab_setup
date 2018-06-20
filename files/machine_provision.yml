@@ -41,7 +41,7 @@
                  - string:
                          name: job_type
                          default: 'bench'
-                         description: 'The job type you will execute on the machine'
+                         description: 'The job type you will execute on the machine: ohpc, bench'
                  - string:
                          name: os_type
                          default: 'Debian'
@@ -106,7 +106,7 @@
 
                         # Build trigger file
                         cat << EOF > mrp_provision
-                        node="jslave-${machine_type}-${job_type}"
+                        node="${machine_type}${job_type}"
                         machine_name=${machine_name}
                         machine_arch=${machine_arch}
                         machine_subarch=${machine_subarch}

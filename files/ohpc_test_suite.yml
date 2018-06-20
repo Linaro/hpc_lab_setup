@@ -34,13 +34,6 @@
                          default: ''
                          description: 'Node on which to execute this job'
                  - choice:
-                         name: cluster
-                         choices:
-                                 - huawei
-                                 - qualcomm
-                         default: 'qualcomm'
-                         description: 'The MrP type of the machine to be provisioned'
-                 - choice:
                          name: method
                          choices:
                                  - stateful
@@ -67,7 +60,7 @@
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
 
-                        if [ ${cluster} == 'qualcomm' ]; then
+                        if [ ${node} == 'qdcohpc' ]; then
                                 master_name='qdcohpc'
                                 cnode01='qdc01'
                                 cnode02='qdc02'
@@ -78,7 +71,7 @@
                                 cnode02ip=$( ./mr-provisioner-client/mrp_client.py getip qdc02 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
                                 cnode03ip=$( ./mr-provisioner-client/mrp_client.py getip qdc03 --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
                                 compute_regex='qdc0[1-3]'
-                        elif [ ${cluster} == 'huawei' ]; then
+                        elif [ ${node} == 'd05ohpc' ]; then
                                 master_name='d05ohpc'
                                 cnode01='d0301'
                                 cnode02='d0302'
