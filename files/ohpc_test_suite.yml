@@ -119,14 +119,6 @@
                         compute_regex: ${compute_regex}
                         EOF
 
-                        cat << EOF > ansible-playbook-for-ohpc/run_testsuite.yml
-                        - hosts: all
-                          user: root
-                          become: yes
-                          roles:
-                            - test-suite-ohpc
-                        EOF
-
                         cd ansible-playbook-for-ohpc
                         ansible-playbook run_testsuite.yml --extra-vars="@../ohpc_installation.yml" -i ../hosts
                         cd ${WORKSPACE}
