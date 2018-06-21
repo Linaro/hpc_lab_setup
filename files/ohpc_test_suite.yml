@@ -114,6 +114,7 @@
                         sms_ip: ${master_ip}
                         enable_warewulf: ${enable_warewulf}
                         enable_testsuiteohpc: True
+                        enable_junit: True
                         num_computes: ${num_compute}
                         compute_regex: ${compute_regex}
                         EOF
@@ -128,4 +129,20 @@
 
                         cd ansible-playbook-for-ohpc
                         ansible-playbook run_testsuite.yml --extra-vars="@../ohpc_installation.yml" -i ../hosts
+                        cd ${WORKSPACE}
+
+                        if [ -f "${master_ip}/tmp/junit-results.tar.gz" ]; then
+                            rm -rf ${WORKSPACE}/results
+                            mkdir ${WORKSPACE}/results
+                            tar -xf ${master_ip}/tmp/junit-results.tar.gz -C ${WORKSPACE}/results
+                        else
+                            echo "FAILURE"
+                        fi
+
                         ssh-agent -k 
+
+         publishers:
+                 - junit:
+                        results: "results/*.xml, results/**/*.xml, results/**/**/*.xml, results/**/**/**/*.xml, results/**/**/**/**/*.xml"
+                        keep-long-stdio: yes
+                        allow-empty-results: yes
