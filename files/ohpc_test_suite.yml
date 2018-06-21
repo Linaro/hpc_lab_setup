@@ -40,6 +40,13 @@
                                  - stateless
                          default: 'stateful'
                          description: 'The type of OHPC install to do'
+                 - choice:
+                         name: test_type
+                         choices:
+                                 - long
+                                 - short
+                         default: 'short'
+                         description: 'The length of the tests' 
                  - string:
                          name: git_branch
                          default: 'production'
@@ -108,6 +115,12 @@
                         ${master_ip}
                         EOF
 
+                        long='disable'
+                        
+                        if [ ${test_type} == 'long' ]; then
+                                long='enable'
+                        fi
+
 
                         cat << EOF > ohpc_installation.yml
                         sms_name: ${master_name}
@@ -117,6 +130,114 @@
                         enable_junit: True
                         num_computes: ${num_compute}
                         compute_regex: ${compute_regex}
+                        configure_packages:
+                          - name: long
+                            status: ${long}
+                          - name: adios
+                            status: disable
+                          - name: boost
+                            status: enable
+                          - name: boost-mpi
+                            status: enable
+                          - name: compilers
+                            status: enable
+                          - name: fftw
+                            status: enable
+                          - name: gsl
+                            status: enable
+                          - name: hdf5
+                            status: disable
+                          - name: hwloc
+                            status: enable
+                          - name: hypre
+                            status: disable
+                          - name: imb
+                            status: disable
+                          - name: mpi
+                            status: enable
+                          - name: mumps
+                            status: enable
+                          - name: mfem
+                            status: enable
+                          - name: minife
+                            status: disable
+                          - name: netcdf
+                            status: disable
+                          - name: numpy
+                            status: enable
+                          - name: ocr
+                            status: enable
+                          - name: petsc
+                            status: enable
+                          - name: phdf5
+                            status: disable
+                          - name: plasma
+                            status: enable
+                          - name: pnetcdf
+                            status: disable
+                          - name: ptscotch
+                            status: enable
+                          - name: R
+                            status: enable
+                          - name: scotch
+                            status: enable
+                          - name: slepc
+                            status: enable
+                          - name: superlu
+                            status: enable
+                          - name: superlu_dist
+                            status: enable
+                          - name: scalasca
+                            status: disable
+                          - name: scipy
+                            status: enable
+                          - name: tau
+                            status: disable
+                          - name: trilinos
+                            status: enable
+                          - name: valgrind
+                            status: enable
+                          - name: hpcg
+                            status: enable 
+                          - name: autotools
+                            status: enable
+                          - name: cmake
+                            status: enable
+                          - name: charliecloud
+                            status: disable
+                          - name: easybuild
+                            status: enable
+                          - name: metis
+                            status: enable
+                          - name: tbb
+                            status: disable
+                          - name: minidft
+                            status: disable
+                          - name: minife
+                            status: enable
+                          - name: cilk
+                            status: disable
+                          - name: munge
+                            status: enable
+                          - name: mpi4py
+                            status: enable
+                          - name: mpiP
+                            status: disable
+                          - name: openblas
+                            status: enable
+                          - name: rms-harness
+                            status: enable
+                          - name: scalapack
+                            status: enable
+                          - name: papi
+                            status: disable
+                          - name: likwid
+                            status: disable
+                          - name: packaging
+                            status: enable
+
+                        mpi_families: openmpi3
+                        compiler_families: gnu7
                         EOF
 
                         cd ansible-playbook-for-ohpc
