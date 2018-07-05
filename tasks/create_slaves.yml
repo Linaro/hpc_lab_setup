@@ -7,6 +7,14 @@
           group: "jenkins_slave"
   with_list: "{{ jslave_list }}"
 
+- name: Create the slaves .ssh directory
+  file:
+          name: "/home/{{ item }}/.ssh"
+          state: directory
+          owner: "{{ item }}"
+          mode: 0700
+  with_list: "{{ jslave_list }}"
+
 - name: Copy the ssh_keys from the remote
   copy:
       src: "{{ key_path }}"
