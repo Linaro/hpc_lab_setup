@@ -73,8 +73,8 @@
                         # Chose known good kernel/initrd/cmdline
                         if [ "${os_type}" == "debian" ]; then
                           preseed_type="preseed"
-                          kernel_desc="Debian ERP 17.12"
-                          initrd_desc="Debian ERP 17.12"
+                          kernel_desc="Debian ERP 18.06"
+                          initrd_desc="Debian ERP 18.06"
                           preseed_name="Debian"
                           kernel_opts=
                         elif [ "${os_type}" == "centos" ]; then
