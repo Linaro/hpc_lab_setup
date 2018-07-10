@@ -79,10 +79,10 @@
                           kernel_opts=
                         elif [ "${os_type}" == "centos" ]; then
                           preseed_type="kickstart"
-                          kernel_desc="CentOS ERP 119"
-                          initrd_desc="CentOS ERP 119"
+                          kernel_desc="CentOS ERP 18.06"
+                          initrd_desc="CentOS ERP 18.06"
                           preseed_name="CentOS"
-                          kernel_opts="ip=dhcp text inst.stage2=http://snapshots.linaro.org/96boards/reference-platform/components/centos-installer/119/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                          kernel_opts="ip=dhcp text inst.stage2=http://releases.linaro.org/reference-platform/enterprise/18.06/centos-installer/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
                         elif [ "${os_type}" == "centos-upstream" ]; then
                           preseed_type="kickstart"
                           kernel_desc="CentOS 7.5"
