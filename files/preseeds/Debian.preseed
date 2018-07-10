@@ -84,5 +84,6 @@ in-target chmod 700 /target/root/.ssh ; \
 printf "{{key}}\n" >> /target/root/.ssh/authorized_keys ; \
 {% endfor %}
 chmod 600 /target/root/.ssh/authorized_keys ; \
-in-target apt remove -y linux-image-*bpo* ; \
+in-target apt remove -y linux-image-* ; \
+in-target apt install -y linux-image-reference-arm64 ; \
 in-target sync;
