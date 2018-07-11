@@ -10,3 +10,4 @@
   tasks:
           - include_tasks: ./tasks/setup_sftp.yml
           - include_tasks: ./tasks/cacher_repo_ans_setup.yml
+          - include_tasks: ./tasks/webserver.yml

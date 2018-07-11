@@ -1,0 +1,7 @@
+---
+- name: Install Apache
+  apt:
+          name: apache2
+          update_cache: yes
+
+# TODO: May need to add some configuration to enable different mirrors
