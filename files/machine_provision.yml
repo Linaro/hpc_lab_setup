@@ -125,7 +125,7 @@
                          condition-filename: mrp_provision
                          steps:
                                  - trigger-builds:
-                                         - project: 'machine_mrp_provision'
+                                         - project: 'provisioning_job'
                                            property-file: mrp_provision
                                            current-parameters: true
                                            block: true

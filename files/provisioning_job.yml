@@ -1,5 +1,5 @@
  - job:
-         name: machine_mrp_provision
+         name: provisioning_job
          description: "This is a job for Provisioning a Machine using MrP"
          project-type: freestyle
          concurrent: true
