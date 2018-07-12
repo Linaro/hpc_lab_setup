@@ -11,18 +11,6 @@ import subprocess
 import argparse
 import time
 
-class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
 class TarballCacher(object):
     def __init__(self, argparse_parser, argparse_args):
         self.parser = argparse_parser
@@ -32,29 +20,24 @@ class TarballCacher(object):
         self.tarball_lock = self.tarball_name + '.lock'
 
     def checkLock(self):
-        if os.path.isfile(os.path.join(self.cache_path,
-                                       self.tarball_lock)):
-            return True
-        else:
-            return False
+        return os.path.isfile(os.path.join(self.cache_path,
+                                           self.tarball_lock))
 
     def checkFile(self):
-        if os.path.isfile(os.path.join(self.cache_path,
-                                       self.tarball_name)):
-            return os.path.join(self.cache_path, self.tarball_name)
-        else:
-            return False
+        return os.path.isfile(os.path.join(self.cache_path,
+                                           self.tarball_name))
 
     def downloadFile(self):
+        # TODO: Use urlretrieve
         download_cmd = ['wget', '-P', self.cache_path, self.args.tarball_url]
         subprocess.check_output(['touch', os.path.join(self.cache_path,
                                                        self.tarball_lock)])
         subprocess.check_output(download_cmd)
         subprocess.check_output(['rm', os.path.join(self.cache_path,
                                                     self.tarball_lock)])
-        return 0
 
     def unmarshallURL(self):
+        # TODO: This looks really unnecessary
         url = self.args.upload
         if len(url.split('/')) < 3:
             raise EnvironmentError('SFTP URL is not valid %s' %
@@ -77,45 +60,46 @@ class TarballCacher(object):
                                           StrictHostKeyChecking=no ' + sftp_ip +
                                           ':' + sftp_dir],
                                          stderr=subprocess.STDOUT, shell=True)
-        print(stdout)
-        if self.tarball_name in stdout.decode("utf-8"):
-            return True
-        else:
-            return False
-
+        return self.tarball_name in stdout.decode("utf-8")
 
     def uploadSFTP(self, sftp_ip, sftp_dir):
-        if self.checkTarballUpload(sftp_ip, sftp_dir) == False:
-            with cd(self.cache_path):
-                stdout = subprocess.check_output(['(echo "put ' + self.tarball_name + '" && echo "exit") | \
-                                                  sftp -o ForwardAgent=yes -o ConnectTimeout=60 -o \
-                                                  UserKnownHostsFile=/dev/null -o \
-                                                  StrictHostKeyChecking=no ' +
-                                                  sftp_ip + ':' + sftp_dir],
-                                                 stderr=subprocess.STDOUT, shell=True)
-            print(stdout)
+        if not self.args.upload:
             return 0
-        else:
-            print("Tarball already uploaded")
 
+        print("Uploading the file to SFTP")
+        full_path = os.path.join(self.cache_path, self.tarball_name)
+        stdout = subprocess.check_output(['(echo "put ' + full_path + '" && echo "exit") | \
+                                          sftp -o ForwardAgent=yes -o ConnectTimeout=60 -o \
+                                          UserKnownHostsFile=/dev/null -o \
+                                          StrictHostKeyChecking=no ' +
+                                          sftp_ip + ':' + sftp_dir],
+                                          stderr=subprocess.STDOUT, shell=True)
+        return 0
 
     def main(self):
+        sftp_ip, sftp_dirpath = self.unmarshallURL()
+
+        # If file exists in the server, don't even download a copy
+        if self.checkTarballUpload(sftp_ip, sftp_dirpath):
+            print("Tarball already uploaded")
+            return 0
+
+        # If another process is caching the same file, wait max 3 min
+        count = 180
         while self.checkLock():
-            time.sleep(3)
+            time.sleep(1)
+            count -= 1
+            if count == 0:
+                raise TimeoutError("Waited 3min for file lock on %s" %
+                                   self.tarball_name)
 
-        tarball = self.checkFile()
-
-        if tarball != False:
-            if self.args.upload != '':
-                sftp_ip, sftp_dirpath = self.unmarshallURL()
-                return self.uploadSFTP(sftp_ip, sftp_dirpath)
-        else:
+        # If file is not local, download
+        if not self.checkFile():
+            print("Downloading the file into the cache")
             self.downloadFile()
-            if self.args.upload != '':
-                sftp_ip, sftp_dirpath = self.unmarshallURL()
-                return self.uploadSFTP(sftp_ip, sftp_dirpath)
-            else:
-                return 0
+
+        # Upload
+        return self.uploadSFTP(sftp_ip, sftp_dirpath)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download and cache some tarballs')
