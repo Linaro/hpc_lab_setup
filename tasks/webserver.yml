@@ -4,4 +4,14 @@
           name: apache2
           update_cache: yes
 
-# TODO: May need to add some configuration to enable different mirrors
+- name: Expose public toolchain directory
+  file:
+          src: /var/results/toolchains
+          dest: /var/www/html/toolchains
+          state: link
+
+- name: Expose public config directory
+  file:
+          src: /var/results/conffiles
+          dest: /var/www/html/conffiles
+          state: link
