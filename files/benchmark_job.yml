@@ -83,19 +83,28 @@
                         case ${node} in
                         d03*)
                             vendor='huawei'
-                            machine_type=d03
+                            node_type=d03
+                            machine_type=aarch64
                             ;;
                         d05*)
                             vendor='huawei'
-                            machine_type=d05
+                            node_type=d05
+                            machine_type=aarch64
                             ;;
                         qdc*)
                             vendor='qualcomm'
-                            machine_type=qdc
+                            node_type=qdc
+                            machine_type=aarch64
                             ;;
                         tx*)
                             vendor='cavium'
-                            machine_type=tx2
+                            node_type=tx2
+                            machine_type=aarch64
+                            ;;
+                        x86_64*)
+                            vendor='intel'
+                            node_type=x86
+                            machine_type=x86_64
                             ;;
                         esac
 
@@ -108,8 +117,8 @@
                         cat << EOF > benchmark_job.yml
                         mr_provisioner_url: http://10.40.0.11:5000
                         mr_provisioner_token: $(cat "/home/${NODE_NAME}/mrp_token")
-                        mr_provisioner_machine_name: ${machine_type}bench
-                        sftp_dirname: ${machine_type}-${BUILD_NUMBER}
+                        mr_provisioner_machine_name: ${node_type}bench
+                        sftp_dirname: ${node_type}-${BUILD_NUMBER}
                         sftp_user: ${NODE_NAME}
                         sftp_server_ip: 10.40.0.13
                         vendor: ${vendor}
