@@ -139,10 +139,10 @@
                         benchmark_run_deps: ${benchmark_run_deps}
                         EOF
 
-                        if [ -d hpc_deploy_benchmarks ]; then
-                            rm -rf hpc_deploy_benchmarks
+                        if [ -d ansible-deploy-benchmarks ]; then
+                            rm -rf ansible-deploy-benchmarks
                         fi
-                        git clone -b ${branch} https://github.com/Linaro/hpc_deploy_benchmarks.git
-                        cd hpc_deploy_benchmarks
-                        ansible-playbook hpc_deploy_benchmarks.yml --extra-vars="@../benchmark_job.yml"
+                        git clone -b ${branch} https://github.com/Linaro/ansible-deploy-benchmarks.git
+                        cd ansible-deploy-benchmarks
+                        ansible-playbook deploy_benchmarks.yml --extra-vars="@../benchmark_job.yml"
                         ssh-agent -k 

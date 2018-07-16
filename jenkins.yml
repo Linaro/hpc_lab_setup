@@ -169,8 +169,8 @@
             include_tasks: ./tasks/install_ansible.yml
 
           - name: Ensure Ansible roles path is there
-            file: 
-                path: "/etc/ansible/roles" 
+            file:
+                path: "/etc/ansible/roles"
                 state: directory
 
           - name: Install provisioning role
@@ -181,7 +181,7 @@
 
           - name: Install benchmark deployment role
             git:
-                repo: https://github.com/Linaro/hpc_deploy_benchmarks.git
+                repo: https://github.com/Linaro/ansible-deploy-benchmarks.git
                 dest: "/etc/ansible/roles/hpc-deploy-benchmarks"
                 version: "master"
 
