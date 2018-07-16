@@ -52,7 +52,7 @@ class ProvisioningJobMaker(object):
           mr_provisioner_arch: "{{arch}}"
           mr_provisioner_subarch: "{{subarch}}"
   roles:
-          - role: ansible-role-provision-mr-provisioner
+          - role: ansible-role-mr-provisioner
 {% endfor %}
 
 - hosts: mr_provisioner_hosts

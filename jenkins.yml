@@ -171,21 +171,4 @@
             include_tasks: ./tasks/install_ansible.yml
             when: ansible_installed.rc != 0
 
-          - name: Ensure Ansible roles path is there
-            file:
-                path: "/etc/ansible/roles"
-                state: directory
-
-          - name: Install provisioning role
-            git:
-                repo: https://github.com/Linaro/ansible-role-mr-provisioner.git
-                dest: "/etc/ansible/roles/ansible-role-provision-mr-provisioner"
-                version: "master"
-
-          - name: Install benchmark deployment role
-            git:
-                repo: https://github.com/Linaro/ansible-deploy-benchmarks.git
-                dest: "/etc/ansible/roles/hpc-deploy-benchmarks"
-                version: "master"
-
           - include_tasks: ./tasks/jenkins_jobs.yml
