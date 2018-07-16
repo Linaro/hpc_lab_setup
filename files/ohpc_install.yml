@@ -31,7 +31,11 @@
          parameters:
                  - node:
                          name: node
-                         default: ''
+                         allowed-slaves:
+                                 - d05ohpc
+                                 - qdcohpc
+                         allowed-multiselect: true
+                         ignore-offline-nodes: true
                          description: 'Node on which to execute this job'
                  - choice:
                          name: method
