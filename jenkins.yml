@@ -140,6 +140,20 @@
                         import jenkins.model.*;
                         Jenkins.getInstance().setNumExecutors(Integer.parseInt("$masterexec"))
 
+          - name: Check for python deps
+            command: dpkg-query -l python3 python3-pip python-requests python-future
+            register: python_installed
+            ignore_errors: True
+
+          - name: Check for ansible package
+            command: dpkg-query -l ansible
+            register: ansible_installed
+            ignore_errors: True
+
+          - name: Check for Jenkins Jobs installed
+            command: python3 -m pip list --format=legacy | grep jenkins-job-builder
+            register: jenkins_job_builder_installed
+            ignore_errors: True
 
           - name: Install python3, pip and python2 deps
             apt:
@@ -151,9 +165,11 @@
                     - python3-pip
                     - python-requests
                     - python-future
+            when: python_installed.rc != 0
 
           - name: Install Jenkins Job Builder
             shell: "pip3 install jenkins-job-builder"
+            when: jenkins_job_builder_installed.rc != 0
 
           - name: Ensure JJB config file dir is there
             file: 
@@ -167,6 +183,7 @@
 
           - name: Install Ansible
             include_tasks: ./tasks/install_ansible.yml
+            when: ansible_installed.rc != 0
 
           - name: Ensure Ansible roles path is there
             file:
