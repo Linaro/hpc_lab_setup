@@ -1,0 +1,5 @@
+---
+- hosts: jenkins
+  remote_user: root
+  tasks:
+   - include_tasks: ./tasks/jenkins_jobs.yml
