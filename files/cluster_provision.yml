@@ -52,10 +52,10 @@
                         elif [ ${machine_type} == "d05" ]; then
                                 machine_list="d05ohpc, d0301, d0302, d0303"
                                 preseed_type="kickstart"
-                                kernel_desc="CentOS ERP 119"
-                                initrd_desc="CentOS ERP 119"
+                                kernel_desc="CentOS ERP 18.06"
+                                initrd_desc="CentOS ERP 18.06"
                                 preseed_name="CentOS"
-                                kernel_opts="ip=dhcp text inst.stage2=http://snapshots.linaro.org/96boards/reference-platform/components/centos-installer/119/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                                kernel_opts="ip=dhcp text inst.stage2=http://releases.linaro.org/reference-platform/enterprise/18.06/centos-installer/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
                         fi
 
                         # Chose known good kernel/initrd/cmdline
