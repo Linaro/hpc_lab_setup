@@ -18,6 +18,11 @@
                 path: "/var/lib/jenkins/.ssh/id_rsa.pub"
             register: sshkey
 
+          - name: Check that Jenkins master has an host key
+            stat:
+                path: "/etc/ssh/ssh_host_rsa_key.pub"
+            register: hostkey
+
           - name: Create the Jenkins master SSH key
             shell: runuser -l jenkins -c "ssh-keygen -f /var/lib/jenkins/.ssh/id_rsa -t rsa -N ''"
             when: sshkey.stat.exists == False
@@ -27,11 +32,23 @@
                 src: /var/lib/jenkins/.ssh/id_rsa.pub
             register: master_key
 
+          - name: Caches the public key
+            shell: "ssh-keyscan {{ ansible_hostname }}"
+            register: ssh_keyscan_result
+            when: hostkey.stat.exists == True
+
           - name: Add the Jenkins master SSH key to itself
             authorized_key:
                     user: jenkins
                     state: present
                     key: "{{ master_key['content'] | b64decode }}" 
+
+          - name: Add the the Jenkins host key to itself
+            known_hosts:
+                    path: "/var/lib/jenkins/.ssh/known_hosts"
+                    name: "{{ ansible_hostname }}"
+                    state: present
+                    key: "{{ ssh_keyscan_result.stdout }}"
 
           - name: Create jenkins_slave group to keep them from unionizing
             group:
