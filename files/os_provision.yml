@@ -65,6 +65,9 @@
                             os_type=debian
                           elif [ "${job_type}" == "ohpc" ]; then
                             os_type=centos
+                            if [ "${machine_type}" == "qdc" ]; then
+                                os_type=centos-upstream
+                            fi
                           else
                             echo "Not Implemented Yet!!!!"
                           fi
