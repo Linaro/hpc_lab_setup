@@ -98,7 +98,7 @@
 
                         # Special options for special machines
                         if [ "${machine_type}" == "d03" ]; then
-                          kernel_opts +=" modprobe.blacklist=hibmc_drm"
+                          kernel_opts="$kernel_opts modprobe.blacklist=hibmc_drm"
                         fi
 
                         # Build trigger machine_provision job
