@@ -1,8 +1,8 @@
 # Required Kernel options to install ERP CentOS7 build: 
 # ip=dhcp text inst.stage2=http://snapshots.linaro.org/96boards/reference-platform/components/centos-installer/119/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg
 # Use network installation
-url --url="http://mirror.centos.org/altarch/7/os/aarch64/" --proxy=http://10.40.0.13:3142
-repo --name="ERP-RPM:staging" --baseurl=http://obs.linaro.org/ERP-RPM:/18.06/stable/ --proxy=http://10.40.0.13:3142
+url --url="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
+repo --name="ERP-RPM:stable" --baseurl="http://10.40.0.13/obs.linaro.org/ERP-RPM:/18.06/stable/"
 # Use text mode install
 text
 # Do not configure the X Window System

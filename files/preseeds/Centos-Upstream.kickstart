@@ -1,8 +1,8 @@
 # Required Kernel options to install ERP CentOS7 build: 
 # ip=dhcp text inst.stage2=http://mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg
 # Use network installation
-url --url="http://mirror.centos.org/altarch/7/os/aarch64/" --proxy=http://10.40.0.13:3142
-repo --name="upstream" --baseurl=http://mirrors.coreix.net/centos-altarch/ --proxy=http://10.40.0.13:3142
+url --url="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
+repo --name="upstream" --baseurl="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
 # Use text mode install
 text
 # Do not configure the X Window System
