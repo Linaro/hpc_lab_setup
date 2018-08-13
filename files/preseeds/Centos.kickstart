@@ -59,5 +59,5 @@ chmod 0600 /root/.ssh/authorized_keys
 #restorecon -R /root/.ssh/
 
 # Add apt-cacher-ng to conf
-echo "proxy=http://10.40.0.13:3142" >> /etc/yum.conf
+#echo "proxy=http://10.40.0.13:3142" >> /etc/yum.conf
 %end
