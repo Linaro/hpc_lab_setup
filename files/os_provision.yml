@@ -92,11 +92,13 @@
                           initrd_desc="CentOS 7.5"
                           preseed_name="CentOS Upstream"
                           kernel_opts="ip=dhcp text inst.stage2=http://mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
-                          if [ "${machine_type}" == "d03" ]; then
-                            kernel_opts +=" modprobe.blacklist=hibmc_drm"
-                          fi
                         else
                           echo "Not Implemented Yet!!!!"
+                        fi
+
+                        # Special options for special machines
+                        if [ "${machine_type}" == "d03" ]; then
+                          kernel_opts +=" modprobe.blacklist=hibmc_drm"
                         fi
 
                         # Build trigger machine_provision job
