@@ -54,7 +54,7 @@
   with_items:
          - "{{ users }}"
 
-- name: Create repositories for results (2655 <=> 0755 + (g+s)
+- name: Create repositories for results
   file:
          path: /var/results
          state: directory
