@@ -60,9 +60,7 @@
          state: directory
          owner: root
          group: root
-
-- name: Set GID bit on the results dir
-  shell: "chmod g+s /var/results"
+         mode: "2655"
 
 - name: Create repositories for results and toolchains
   file:
@@ -70,17 +68,9 @@
          state: directory
          owner: root
          group: root
+         mode: "2655"
   with_items:
-    - benchmark
-    - openhpc
-    - toolchains
-    - conffiles
-
-- name: Set GID bit on the results and toolchain dir
-  shell: "chmod g+s /var/results/{{ item }}"
-  with_items:
-    - benchmark
-    - openhpc
+    - "{{ vendors_list }}"
     - toolchains
     - conffiles
 

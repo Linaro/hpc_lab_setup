@@ -124,10 +124,10 @@ Match Group jslave-{{ item }}
         ForceCommand internal-sftp -d /var/results -u 0557
 
 Match Group {{ item }}
-	ChrootDirectory /var/results/
+	ChrootDirectory /var/results/{{ item }}
         AllowTCPForwarding no
         X11Forwarding no
-        ForceCommand internal-sftp -d /var/results/qualcomm
+        ForceCommand internal-sftp -d /var/results/{{ item }}
 {% endfor %}
 
 # Example of overriding settings on a per-user basis
