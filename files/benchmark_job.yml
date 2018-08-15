@@ -39,12 +39,8 @@
                          allowed-multiselect: true
                          ignore-offline-nodes: true
                          description: 'Node with which to run the benchmark on the machine'
-                 - choice:
+                 - string:
                          name: branch
-                         choices:
-                                 - master
-                                 - rengolin
-                                 - bger
                          default: 'master'
                          description: 'The benchmark_harness branch to use'
                  - choice:
@@ -54,30 +50,38 @@
                                  - himeno
                          default: 'lulesh'
                          description: 'The benchmark to run on the machine'
+                 - choice:
+                         name: size
+                         choices:
+                                 - '3'
+                                 - '2'
+                                 - '1'
+                         default: '2'
+                         description: 'The benchmark specific size parameter. 1 is small, 3 is large.'
+                 - string:
+                         name: iterations
+                         default: '1'
+                         description: 'The number of times to run the binaries (statistical purposes)'
                  - string:
                          name: compiler
                          default: 'gcc'
-                         description: 'The compiler (url or installed binary) with which to compile the benchmark'
+                         description: 'The compiler (url or system binary) with which to compile the benchmark'
                  - string:
                          name: compiler_flags
                          default: ''
                          description: 'The extra compiler flags to compiler with'
                  - string:
-                         name: link_flags
+                         name: linker_flags
                          default: ''
                          description: 'The extra linker flags to link with'
                  - string:
-                         name: benchmark_options
+                         name: run_flags
                          default: ''
-                         description: 'The benchmark options to run the benchmark with'
+                         description: 'The extra execution flags to run the benchmark'
                  - string:
-                         name: benchmark_build_deps
+                         name: harness_options
                          default: ''
-                         description: 'The extra benchmark specific build deps'
-                 - string:
-                         name: benchmark_run_deps
-                         default: ''
-                         description: 'The extra benchmark specific run deps'
+                         description: 'Additional harnesss options'
          builders:
                  - shell: |
                         #!/bin/bash
@@ -128,15 +132,16 @@
                         sftp_user: ${NODE_NAME}
                         sftp_server_ip: 10.40.0.13
                         sftp_path: ${vendor}/benchmark
+                        machine_type: ${machine_type}
                         branch: ${branch}
                         benchmark: ${benchmark}
-                        machine_type: ${machine_type}
+                        size: ${size}
+                        iterations: ${iterations}
                         compiler: ${compiler}
                         compiler_flags: ${compiler_flags}
-                        link_flags: ${link_flags}
-                        benchmark_options: ${benchmark_options}
-                        benchmark_build_deps: ${benchmark_build_deps}
-                        benchmark_run_deps: ${benchmark_run_deps}
+                        linker_flags: ${linker_flags}
+                        run_flags: ${run_flags}
+                        harness_options: ${harness_options}
                         EOF
 
                         if [ -d ansible-deploy-benchmarks ]; then
