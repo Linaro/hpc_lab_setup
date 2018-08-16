@@ -127,7 +127,7 @@
                         sftp_dirname: ${node_type}-${BUILD_NUMBER}
                         sftp_user: ${NODE_NAME}
                         sftp_server_ip: 10.40.0.13
-                        vendor: ${vendor}
+                        sftp_path: ${vendor}/benchmark
                         branch: ${branch}
                         benchmark: ${benchmark}
                         machine_type: ${machine_type}
