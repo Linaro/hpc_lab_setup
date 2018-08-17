@@ -11,6 +11,7 @@
                   - "tx2bench"
                   - "qdcohpc"
                   - "qdcbench"
+                  - "xecutor"
 
   tasks:
           - name: Check that Jenkins master has an SSH key
@@ -105,7 +106,8 @@
                     script: "{{ add_ssh_slave }}" 
                     args:
                             username: "{{ item }}"
-                            coordinatorexec: "{{ jslave_list|count|int*2 }}"
+                            coordinatorexec: "{{ jslave_list|count|int*2 if (item != 'xecutor') else 30 }}"
+                            mode: "{{ 'NORMAL' if (item == 'xecutor') else 'EXCLUSIVE' }}"
             with_list: "{{ jslave_list }}"
             vars:
                     add_ssh_slave: |
@@ -121,7 +123,7 @@
                                 "$username", // Agent description
                                 agentHome, // Workspace on the agent's computer
                                 executors, // Number of executors
-                                Mode.EXCLUSIVE, // "Usage" field, EXCLUSIVE is "only tied to node", NORMAL is "any"
+                                Mode.$mode, // "Usage" field, EXCLUSIVE is "only tied to node", NORMAL is "any"
                                 "$username", // Labels
                                 new SSHLauncher("localhost", 22, SSHLauncher.lookupSystemCredentials(credentialID), "", null, null, "", "", 60, 3, 15),
                                 RetentionStrategy.INSTANCE) // Is the "Availability" field and INSTANCE means "Always"
@@ -136,13 +138,20 @@
                     validate_certs: no
                     script: "{{ add_master_executors }}" 
                     args:
-                            masterexec: "30" #24 + margin
+                            masterexec: "0" # xecutor's = 30 (24 + margin)
             vars:
                     add_master_executors: |
                         import hudson.model.*;
                         import jenkins.model.*;
-                        Jenkins.getInstance().setNumExecutors(Integer.parseInt("$masterexec"))
+                        Jenkins.getInstanceOrNull().setNumExecutors(Integer.parseInt("$masterexec"))
+                        xecutor = Jenkins.getInstanceOrNull().getNode("xecutor")
+                        if (xecutor != null) { 
+                                xecutor.setNumExecutors(Integer.parseInt('30'))
+                        }
+                        Jenkins.getInstanceOrNull().setNodes(Jenkins.getInstanceOrNull().getNodes())
 
+          # The above groovy line is needed to force Jenkins to reaload the slaves... neat huh ? :S
+                        
           - name: Check for python deps
             command: dpkg-query -l python3 python3-pip python-requests python-future
             register: python_installed

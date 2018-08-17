@@ -4,7 +4,7 @@
          project-type: freestyle
          block-downstream: false
          concurrent: true
-         node: "master"
+         node: "xecutor"
          properties:
                  - authorization:
                          hpc-sig-admin:
@@ -84,6 +84,6 @@
                                          - project: 'machine_provision'
                                            property-file: machine_provision
                                            current-parameters: true
-                                           node-label-name: "master"
-                                           node-label: "master"
+                                           node-label-name: "xecutor"
+                                           node-label: "xecutor"
                                            block: true
