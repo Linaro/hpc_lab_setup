@@ -34,7 +34,7 @@
             register: master_key
 
           - name: Caches the public key
-            shell: "ssh-keyscan {{ ansible_hostname }}"
+            shell: "ssh-keyscan localhost"
             register: ssh_keyscan_result
             when: hostkey.stat.exists == True
 
@@ -47,7 +47,7 @@
           - name: Add the the Jenkins host key to itself
             known_hosts:
                     path: "/var/lib/jenkins/.ssh/known_hosts"
-                    name: "{{ ansible_hostname }}"
+                    name: "localhost"
                     state: present
                     key: "{{ ssh_keyscan_result.stdout }}"
 
@@ -114,18 +114,20 @@
                         import hudson.model.Node.Mode
                         import hudson.slaves.*
                         import jenkins.model.Jenkins
-                        import hudson.plugins.sshslaves.SSHLauncher
+                        import hudson.plugins.sshslaves.*
+                        import hudson.plugins.sshslaves.verifiers.*
                         String credentialID = "$username"
                         String agentHome = "/home/$username"
                         String executors = '1'
                         if (credentialID == 'jslave-coordinator') { executors = "$coordinatorexec" } 
+                        knownhosts = new KnownHostsFileKeyVerificationStrategy()
                         DumbSlave dumb = new DumbSlave("$username", // Agent name, usually matches the host computer's machine name
                                 "$username", // Agent description
                                 agentHome, // Workspace on the agent's computer
                                 executors, // Number of executors
                                 Mode.$mode, // "Usage" field, EXCLUSIVE is "only tied to node", NORMAL is "any"
                                 "$username", // Labels
-                                new SSHLauncher("localhost", 22, SSHLauncher.lookupSystemCredentials(credentialID), "", null, null, "", "", 60, 3, 15),
+                                new SSHLauncher("localhost", 22, credentialID, "", null, null, "", "", 60, 3, 15, knownhosts),
                                 RetentionStrategy.INSTANCE) // Is the "Availability" field and INSTANCE means "Always"
                         Jenkins.instance.addNode(dumb)
                         println agentHome
