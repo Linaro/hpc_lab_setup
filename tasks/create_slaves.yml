@@ -41,7 +41,7 @@
     
 - name: Get the template back
   fetch:
-    src: "/tmp/{{ item }}"
+    src: "/tmp/{{ item }}"
     dest: "./vars/{{ item }}.secret"
     flat: yes
   with_items:

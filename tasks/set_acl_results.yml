@@ -11,7 +11,7 @@
 
 - name: Give proper ACL permissions
   acl:
-         path: "/var/results/{{ item }}/{{ result_type }}"
+         path: "/var/results/{{ item }}/{{ result_type }}"
          entity: "{{ item }}"
          etype: group
          permissions: rx
@@ -22,7 +22,7 @@
 
 - name: Give proper ACL permissions
   acl:
-         path: "/var/results/{{ item }}/{{ result_type }}"
+         path: "/var/results/{{ item }}/{{ result_type }}"
          entity: "{{ item }}"
          etype: group
          permissions: rx
@@ -33,7 +33,7 @@
 
 - name: Give proper ACL permissions
   acl:
-         path: "/var/results/{{ item.cgroup }}/{{ result_type }}"
+         path: "/var/results/{{ item.cgroup }}/{{ result_type }}"
          entity: "jslave-{{ item.cgroup }}"
          etype: group
          permissions: wx
@@ -44,7 +44,7 @@
 
 - name: Give proper ACL permissions
   acl:
-         path: "/var/results/{{ item.cgroup }}/{{ result_type }}"
+         path: "/var/results/{{ item.cgroup }}/{{ result_type }}"
          entity: "jslave-{{ item.cgroup }}"
          etype: group
          permissions: w
