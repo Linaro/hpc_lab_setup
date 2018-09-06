@@ -1,0 +1,32 @@
+---
+- view:
+        name: Provisioning
+        view-type: list
+        description: "This page allows you to select which of the HPC Lab's machine/cluster you want to provision  "
+        filter-executors: true
+        filter-queue: true
+        job-name:
+            - os_provision
+            - cluster_provision
+        columns:
+            - status
+            - weather
+            - job
+            - last-success
+            - last-failure
+            - last-duration
+            - build-button
+            - last-stable
+            - schedule-build
+            - build-filter
+            - desc
+            - policy-violations
+            - member-graph-view
+            - extra-build-parameters
+            - extra-build-description
+            - extra-last-user-name
+            - extra-workspace-link
+            - extra-configure-button
+            - extra-last-output
+        recurse: false
+        status-filter: true

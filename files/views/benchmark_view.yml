@@ -1,0 +1,31 @@
+---
+- view:
+        name: Benchmarks
+        view-type: list
+        description: "This page allows you to select which benchmark job to run on the HPC Lab's servers  "
+        filter-executors: true
+        filter-queue: true
+        job-name:
+            - benchmark_job
+        columns:
+            - status
+            - weather
+            - job
+            - last-success
+            - last-failure
+            - last-duration
+            - build-button
+            - last-stable
+            - schedule-build
+            - build-filter
+            - desc
+            - policy-violations
+            - member-graph-view
+            - extra-build-parameters
+            - extra-build-description
+            - extra-last-user-name
+            - extra-workspace-link
+            - extra-configure-button
+            - extra-last-output
+        recurse: false
+        status-filter: true
