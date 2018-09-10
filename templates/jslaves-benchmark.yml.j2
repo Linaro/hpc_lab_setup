@@ -2,13 +2,10 @@
 jslaves_benchmark:
 {% for item in jslave_list|select("match", ".*bench.*") %}
     - name: {{ item }}
-{% if item is match(".*qdc.*") %}
-      cgroup: qualcomm
-{% elif item is match(".*d0.*") %}
-      cgroup: huawei
-{% elif item is match(".*tx.*") %}
-      cgroup: cavium
+{% for r in sftp_groups %}
+{% if item is match(r.regex) %}
+      cgroup: {{ r.group }}
 {% endif %}
+{% endfor %}
       ssh_key: {{ master_private_key['content'] | b64decode }}
-
 {% endfor %}

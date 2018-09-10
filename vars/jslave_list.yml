@@ -1,0 +1,11 @@
+---
+jslave_list:
+- "d03ohpc"
+- "d03bench"
+- "d05ohpc"
+- "d05bench"
+- "tx2ohpc"
+- "tx2bench"
+- "qdcohpc"
+- "qdcbench"
+- "xecutor"

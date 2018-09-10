@@ -1,19 +1,13 @@
 ---
 - hosts: jenkins
   remote_user: root
-  vars:
-          jslave_list:
-                  - "d03ohpc"
-                  - "d03bench"
-                  - "d05ohpc"
-                  - "d05bench"
-                  - "tx2ohpc"
-                  - "tx2bench"
-                  - "qdcohpc"
-                  - "qdcbench"
-                  - "xecutor"
-
   tasks:
+          - include_vars:
+                  file: ./vars/jslave_list.yml
+
+          - include_vars:
+                  file: ./vars/jslave_to_sftp.yml
+
           - name: Check that Jenkins master has an SSH key
             stat:
                 path: "/var/lib/jenkins/.ssh/id_rsa.pub"
