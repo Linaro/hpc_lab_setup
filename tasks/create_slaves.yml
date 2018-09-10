@@ -15,38 +15,26 @@
           mode: 0700
   with_list: "{{ jslave_list }}"
 
-- name: Copy the ssh_keys from the remote
+- name: Give the master's ssh key to the slaves
   copy:
       src: "{{ key_path }}"
       dest: "/home/{{ item }}/.ssh/id_rsa"
       remote_src: yes
   with_list: "{{ jslave_list }}"
 
-- name: Fetch the ssh_keys from the remote
-  fetch:
-      src: "{{ key_path }}.pub"
-      dest: "./templates/{{ item }}.sshkey"
-      flat: yes
-  with_list: "{{ jslave_list }}"
+- name: Slurping up the master's private key into a variable
+  slurp:
+    src: "{{ key_path }}"
+  register: master_private_key
 
 - name: Putting the keys into the template for the fileserver
   template:
-    src: "templates/jslaves-openhpc.yml.j2"
-    dest: "/tmp/jslaves-openhpc.yml"
-
-- name: Putting the keys into the template for the fileserver
-  template:
-    src: "templates/jslaves-benchmark.yml.j2"
-    dest: "/tmp/jslaves-benchmark.yml"
-    
-- name: Get the template back
-  fetch:
-    src: "/tmp/{{ item }}"
-    dest: "./vars/{{ item }}.secret"
-    flat: yes
+    src: "templates/{{ item }}.j2"
+    dest: "vars/{{ item }}"
   with_items:
         - jslaves-benchmark.yml
         - jslaves-openhpc.yml
+  delegate_to: localhost
 
 - name: Add Master Jenkins' ssh key to the slaves authorized list
   authorized_key:

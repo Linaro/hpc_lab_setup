@@ -9,6 +9,6 @@ jslaves_benchmark:
 {% elif item is match(".*tx.*") %}
       cgroup: cavium
 {% endif %}
-      ssh_key: {% include '%s.sshkey' % item %}
+      ssh_key: {{ master_private_key['content'] | b64decode }}
 
 {% endfor %}

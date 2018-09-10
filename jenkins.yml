@@ -51,7 +51,7 @@
                     state: present
                     key: "{{ ssh_keyscan_result.stdout }}"
 
-          - name: Create jenkins_slave group to keep them from unionizing
+          - name: Create jenkins_slave group
             group:
                     name: jenkins_slave
                     state: present
@@ -152,7 +152,7 @@
                         }
                         Jenkins.getInstanceOrNull().setNodes(Jenkins.getInstanceOrNull().getNodes())
 
-          # The above groovy line is needed to force Jenkins to reaload the slaves... neat huh ? :S
+          # The above groovy line is needed to force Jenkins to reaload the slaves
                         
           - name: Check for python deps
             command: dpkg-query -l python3 python3-pip python-requests python-future
