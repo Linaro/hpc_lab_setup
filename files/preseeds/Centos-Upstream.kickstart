@@ -60,12 +60,4 @@ chmod 0600 /root/.ssh/authorized_keys
 
 # Add apt-cacher-ng to conf
 #echo "proxy=http://10.40.0.13:3142" >> /etc/yum.conf
-
-# Infiniband
-yum -y groupinstall "Infiniband Support"
-yum -y install opensm
-
-systemctl enable rdma
-systemctl enable opensm
-
 %end
