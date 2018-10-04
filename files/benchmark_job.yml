@@ -128,6 +128,7 @@
                         mr_provisioner_url: http://10.40.0.11:5000
                         mr_provisioner_token: $(cat "/home/${NODE_NAME}/mrp_token")
                         mr_provisioner_machine_name: ${node_type}bench
+                        unique_id: ${BUILD_NUMBER}
                         sftp_dirname: ${node_type}-${BUILD_NUMBER}
                         sftp_user: ${NODE_NAME}
                         sftp_server_ip: 10.40.0.13
