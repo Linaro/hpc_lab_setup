@@ -189,8 +189,8 @@
                 src: "templates/jenkins_jobs.ini.j2"
                 dest: "/etc/jenkins_jobs/jenkins_jobs.ini"
 
-          - name: Install Ansible
-            include_tasks: ./tasks/install_ansible.yml
+          - name: Install Ansible and Python3
+            include_tasks: ./tasks/install_dependencies.yml
             when: ansible_installed.rc != 0
 
           - include_tasks: ./tasks/jenkins_jobs.yml

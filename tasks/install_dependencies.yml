@@ -1,0 +1,42 @@
+---
+
+- name: Download dirmngr dependency for key download on Debian
+  apt:
+          name: dirmngr
+          update_cache: yes
+
+- name: Get the PPA key to use the Ansible repo
+  shell: "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367"
+
+- name: Add repository for Ansible (PPA) on Debian
+  apt_repository:
+    repo: deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main
+    state: present
+    filename: ansible
+
+- name: Apt install Ansible
+  apt:
+          name: ansible
+          update_cache: yes
+
+- name: Localhost Install rsync and python3
+  package:
+          name: "{{ item }}"
+          state: present
+  with_items:
+          - rsync
+          - python3
+          - python3-pip
+
+- name: Create alias for the Python3 env
+  add_host:
+    name: "jenkins-py3"
+    groups: jenkins
+    ansible_host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    ansible_python_interpreter: "/usr/bin/python3"
+
+
+- name: Localhost Install pip junitparser dependency
+  pip:
+          name: junitparser
+  delegate_to: jenkins-py3

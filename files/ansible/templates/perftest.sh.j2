@@ -1,0 +1,18 @@
+#!/bin/bash
+DEST={{ remote_ib_ip }}
+SRC={{ host_ib_ip }}
+SSH_OPTS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+TAG={{ results_tag | default("$SRC-$DEST-$(date +%Y%m%d-%H%M%S)") }}
+HCA1="-d mlx5_{{ host_ib_devnb }} "
+HCA2="-d mlx5_{{ remote_ib_devnb }} "
+BIND1="numactl --cpunodebind=0 "
+BIND2="numactl --cpunodebind=0 "
+LTFLAGS="$HCA1 -F "
+BWFLAGS="$HCA1 --report_gbits -F "
+BIBWFLAGS="$HCA1 --report_gbits -F -b "
+LTFLAGS2="$HCA2 -F "
+BWFLAGS2="$HCA2 --report_gbits -F "
+BIBWFLAGS2="$HCA2 --report_gbits -F -b "
+$BIND1 ib_write_lat $LTFLAGS & ssh ${SSH_OPTS} $DEST "$BIND2 ib_write_lat $LTFLAGS2 $SRC " 2>&1 |tee log-lat-$TAG.txt
+$BIND1 ib_write_bw $BWFLAGS & ssh ${SSH_OPTS} $DEST "$BIND2 ib_write_bw $BWFLAGS2 $SRC " 2>&1 |tee log-bw-$TAG.txt
+$BIND1 ib_write_bw $BIBWFLAGS & ssh ${SSH_OPTS} $DEST "$BIND2 ib_write_bw $BIBWFLAGS2 $SRC " 2>&1 |tee log-bibw-$TAG.txt

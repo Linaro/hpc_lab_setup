@@ -1,0 +1,117 @@
+ - job:
+         name: ib_perftest
+         description: "This is the job to run performance tests on the Infiniband Network"
+         project-type: freestyle
+         block-downstream: false
+         concurrent: true
+         properties:
+                 - authorization:
+                         hpc-sig-admin:
+                                 - credentials-create
+                                 - credentials-delete
+                                 - credentials-manage-domains
+                                 - credentials-update
+                                 - credentials-view
+                                 - job-build
+                                 - job-cancel
+                                 - job-configure
+                                 - job-delete
+                                 - job-discover
+                                 - job-move
+                                 - job-read
+                                 - job-status
+                                 - job-workspace
+                                 - ownership-jobs
+                                 - run-delete
+                                 - run-update
+                                 - scm-tag
+                         hpc-sig-devel:
+                                 - job-build
+                                 - job-read
+         parameters:
+                 - node:
+                         name: cluster
+                         allowed-slaves:
+                                 - d05ohpc
+                                 - qdcohpc
+                         allowed-multiselect: False
+                         description: 'Which cluster to use'
+                 - string:
+                         name: client_branch
+                         default: 'master'
+                         description: 'Branch name of the MrP client to use'
+                 - string:
+                         name: automation_branch
+                         default: 'master'
+                         description: 'Branch name of the ib_perftest recipe'
+         builders:
+                 - shell: |
+                        #!/bin/bash
+                        set -ex
+
+                        mr_provisioner_url='http://10.40.0.11:5000'
+                        mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
+
+                        if [ ${cluster} == 'd05ohpc' ]; then
+                                host_machine='d05ohpc'
+                                remote_machine='d0301'
+                        elif [ ${cluster} == 'qdcohpc' ]; then
+                                host_machine='qdcohpc'
+                                remote_machine='qdc01'
+                        fi
+
+                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
+                            rm -rf ${WORKSPACE}/mr-provisioner-client
+                        fi
+                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+
+                        host_machine_ip=$( "${WORKSPACE}/mr-provisioner-client/mrp_client.py" --mrp-token=${mr_provisioner_token} --mrp-url=${mr_provisioner_url} net --action getip --machine "${host_machine}" --interface eth1)
+                        remote_machine_ip=$( "${WORKSPACE}/mr-provisioner-client/mrp_client.py" --mrp-token=${mr_provisioner_token} --mrp-url=${mr_provisioner_url} net --action getip --machine "${remote_machine}" --interface eth1)
+
+                        # Get the XXX in 10.40.24.XXX to make 192.168.100.XXX
+                        IFS="." read -ra REMOTE <<< "$remote_machine_ip"
+                        remote_ib_ip="192.168.100.${REMOTE[-1]}"
+                        IFS="." read -ra HOST <<< "$host_machine_ip"
+                        host_ib_ip="192.168.100.${HOST[-1]}"
+
+                        # We'll be using the same port number for all machines
+                        host_ib_devnb='1'
+                        remote_ib_devnb='1'
+
+                        cat << EOF > ${WORKSPACE}/hosts
+                        localhost-py3 ansible_host=localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+                        [target]
+                        ${host_machine_ip}
+                        EOF
+
+                        cat << EOF > ${WORKSPACE}/ib_perftest_args.yml
+                        workspace: ${WORKSPACE}
+                        remote_ib_ip: ${remote_ib_ip}
+                        host_ib_ip: ${host_ib_ip}
+                        host_ib_devnb: ${host_ib_devnb}
+                        remote_ib_devnb: ${remote_ib_devnb}
+                        results_tag: ${host_machine}-${remote_machine}-${BUILD_NUMBER}
+                        do_perftest: True
+                        do_mpitest: True
+                        EOF
+
+                        if [ -d ${WORKSPACE}/results ]; then
+                                rm -rf ${WORKSPACE}/results
+                        fi
+                        mkdir ${WORKSPACE}/results
+
+                        if [ -d ${WORKSPACE}/hpc_lab_setup ]; then
+                            rm -rf ${WORKSPACE}/hpc_lab_setup
+                        fi
+                        git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git ${WORKSPACE}/hpc_lab_setup
+
+                        eval `ssh-agent`
+                        ssh-add
+                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v -u root "${WORKSPACE}/hpc_lab_setup/files/ansible/ib_perftest.yml" -i "${WORKSPACE}/hosts"  --extra-vars="@${WORKSPACE}/ib_perftest_args.yml" --extra-vars="@${WORKSPACE}/hpc_lab_setup/files/ibperftest_thresholds.yml"
+                        ssh-agent -k 
+
+         publishers:
+                 - junit:
+                        results: "results/*.xml" 
+                        keep-long-stdio: yes
+                        allow-empty-results: yes
