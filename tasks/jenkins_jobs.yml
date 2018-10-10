@@ -14,6 +14,7 @@
           - ohpc_install
           - ohpc_test_suite
           - cluster_provision
+          - ib_perftest
 
 - name: Copy yaml view definition(s)
   copy:
@@ -37,3 +38,4 @@
           - benchmark_view
           - ohpc_view
           - provisioning_view
+          - ib_perftest

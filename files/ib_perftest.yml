@@ -1,0 +1,168 @@
+ - job:
+         name: ib_perftest
+         description: "This is the job to run performance tests on the Infiniband Network"
+         project-type: freestyle
+         block-downstream: false
+         concurrent: true
+         properties:
+                 - authorization:
+                         hpc-sig-admin:
+                                 - credentials-create
+                                 - credentials-delete
+                                 - credentials-manage-domains
+                                 - credentials-update
+                                 - credentials-view
+                                 - job-build
+                                 - job-cancel
+                                 - job-configure
+                                 - job-delete
+                                 - job-discover
+                                 - job-move
+                                 - job-read
+                                 - job-status
+                                 - job-workspace
+                                 - ownership-jobs
+                                 - run-delete
+                                 - run-update
+                                 - scm-tag
+                         hpc-sig-devel:
+                                 - job-build
+                                 - job-read
+         parameters:
+                 - node:
+                         name: host_machine
+                         allowed-slaves:
+                                 - d05ohpc
+                                 - d0301
+                                 - d0302
+                                 - d0303
+                         allowed-multiselect: False
+                         description: 'Node which will host the perftest'
+                 - choice:
+                         name: target_machine
+                         allowed-slaves:
+                                 - d05ohpc
+                                 - d0301
+                                 - d0302
+                                 - d0303
+                         allowed-multiselect: False
+                         description: 'Node which will assist in the perftest'
+                 - choice:
+                         name: do_perftest
+                         choices:
+                                 - True
+                                 - False
+                         default: 'True'
+                         description: 'Do the perftest using ib_write*'
+                 - choice:
+                         name: do_mpitest
+                         choices:
+                                 - True
+                                 - False
+                         default: 'True'
+                         description: 'Do the MPI perftests'
+                 - string:
+                         name: latency_threshold
+                         default: '3.0'
+                         description: 'Threshold above which Latency test is failed'
+                 - string:
+                         name: bw_threshold
+                         default: '45.0'
+                         description: 'Threshold below which Bandwidth test is failed'
+                 - string:
+                         name: bibw_threshold
+                         default: '45.0'
+                         description: 'Threshold below which Bidirectional Bandwidth test is failed'
+                 - string:
+                         name: mpilat_threshold
+                         default: '3.0'
+                         description: 'Threshold above which MPI Latency test is failed'
+                 - string:
+                         name: mpibw_threshold
+                         default: '1700'
+                         description: 'Threshold below which MPI Bandwidth test is failed'
+                 - string:
+                         name: mpibibw_threshold
+                         default: '1700'
+                         description: 'Threshold below which MPI Bidirectional Bandwidth test is failed'
+                 - string:
+                         name: git_branch
+                         default: 'production'
+                         description: 'Branch name of the ohpc install recipe'
+         builders:
+                 - shell: |
+                        #!/bin/bash
+                        set -ex
+                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
+                            rm -rf ${WORKSPACE}/mr-provisioner-client
+                        fi
+                        git clone https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+
+                        mr_provisioner_url='http://10.40.0.11:5000'
+                        mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
+
+                        host_machine_ip=$( ${WORKSPACE}/mr-provisioner-client/mrp_client.py getip ${host_machine} --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                        remote_machine_ip=$( ${WORKSPACE}/mr-provisioner-client/mrp_client.py getip ${remote_machine} --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+
+                        # Get the XXX in 10.40.24.XXX to make 192.168.0.XXX
+                        IFS="." read -ra REMOTE <<< "$remote_machine_ip"
+                        remote_ib_ip="192.168.0.${REMOTE[-1]}"
+                        IFS="." read -ra HOST <<< "$host_machine_ip"
+                        host_ib_ip="192.168.0.${HOST[-1]}"
+
+                        # We'll be using the same port number for all machines
+                        host_ib_devnb='1'
+                        remote_ib_devnb='1'
+
+                        # Prepare the 'tests' dictionary
+                        tests = ''
+                        if [ ${do_perftest} == 'True' ]; then
+                                tests+="- name: bw\n  threshold: ${bw_threshold}\n"
+                                tests+="- name: bibw\n  threshold: ${bibw_threshold}\n"
+                                tests+="- name: lat\n  threshold: ${latency_threshold}\n"
+                        fi
+                        if [ ${do_mpitest} == 'True' ]; then
+                                tests+="- name: mpibw\n  threshold: ${mpibw_threshold}\n"
+                                tests+="- name: mpibibw\n  threshold: ${mpibibw_threshold}\n"
+                                tests+="- name: mpilat\n  threshold: ${mpilat_threshold}\n"
+                        fi
+
+                        if [ -d ${WORKSPACE}/hpc_lab_setup ]; then
+                            rm -rf ${WORKSPACE}/hpc_lab_setup
+                        fi
+                        git clone -b ${git_branch} https://github.com/Linaro/hpc_lab_setup.git ${WORKSPACE}/hpc_lab_setup
+
+                        cat << EOF > ${WORKSPACE}/hosts
+                        localhost-py3 ansible_host=localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+                        [target]
+                        ${host_machine_ip}
+                        EOF
+
+                        cat << EOF > ${WORKSPACE}/ib_perftest_args.yml
+                        workspace: ${WORKSPACE}
+                        remote_ib_ip: ${remote_ib_ip}
+                        host_ib_ip: ${host_ib_ip}
+                        host_ib_devnb: ${host_ib_devnb}
+                        remote_ib_devnb: ${remote_ib_devnb}
+                        results_tag: ${host_machine}-${remote_machine}-${BUILD_NUMBER}
+                        do_perftest: ${do_perftest}
+                        do_mpitest: ${do_perftest}
+                        tests:
+                        $(echo -e "${tests}")
+                        EOF
+
+                        if [ -d ${WORKSPACE}/results ]; then
+                                rm -rf ${WORKSPACE}/results
+                        fi
+                        mkdir ${WORKSPACE}/results
+
+                        eval `ssh-agent`
+                        ssh-add
+                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v -u root "${WORKSPACE}/hpc_lab_setup/files/ansible/ib_perftest.yml" -i "${WORKSPACE}/hosts"  --extra-vars="@${WORKSPACE}/ib_perftest_args.yml"
+                        ssh-agent -k 
+
+         publishers:
+                 - junit:
+                        results: "results/*.xml" 
+                        keep-long-stdio: yes
+                        allow-empty-results: yes

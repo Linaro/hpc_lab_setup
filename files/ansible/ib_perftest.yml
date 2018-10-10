@@ -1,0 +1,81 @@
+---
+- hosts: target
+  tasks:
+          - name: Localhost Install rsync and python3
+            package:
+                    name: "{{ item }}"
+                    state: present
+            delegate_to: localhost
+            with_items:
+                    - rsync
+                    - python3
+                    - python3-pip
+
+          - name: Localhost Install pip junitparser dependency
+            pip:
+                    name: junitparser
+            delegate_to: localhost-py3
+
+          - name: Install IB support, test deps and parser deps
+            yum:
+                    name: "{{ item }}"
+                    state: present
+            with_items:
+                    - rsync
+                    - perftest
+                    - numactl
+
+          - name: Get the perftest script to the target
+            template:
+                    src: ./templates/perftest.sh.j2
+                    dest: /root/perftest.sh
+                    owner: root
+                    group: root
+                    mode: 0700
+            when: do_perftest
+
+          - name: Run the perftest
+            shell: "/root/perftest.sh"
+            when: do_perftest
+
+          - name: Get the mpi perftest script to the target
+            template:
+                    src: ./templates/mpi_perftest.sh.j2
+                    dest: /root/mpi_perftest.sh
+                    owner: root
+                    group: root
+                    mode: 0700
+            when: do_mpitest
+
+          - name: Run the MPI tests
+            shell: "/root/mpi_perftest.sh"
+            when: do_mpitest
+
+          - name: Find results
+            find:
+              paths: "/root/"
+              patterns: "log-{{ item.name }}-{{ results_tag }}.txt"
+            register: results_path
+            failed_when: results_path.matched == 0
+            with_items:
+                    - "{{ tests }}"
+          - debug: var=results_path
+
+          - name: Move the results back for them to be converted to xml
+            fetch:
+                     src: "{{ item.files[0].path }}"
+                     dest: "{{ playbook_dir }}/"
+                     flat: yes
+            with_items:
+                    - "{{ results_path.results }}"
+
+          - name: Parse ib_write_bw test output and produces an JUnit/XUnit xml file (see README.md for options)
+            test_result_parser:
+                    json_or_xml: 'xml'
+                    test_output_path: "{{ playbook_dir }}/log-{{ item.name }}-{{ results_tag }}.txt"
+                    test_threshold: "{{ item.threshold }}"
+                    junit_write_path: "{{ workspace }}/results"
+                    extra_flags: "{{ results_tag }}"
+            delegate_to: localhost-py3
+            with_items:
+                    - "{{ tests }}"
