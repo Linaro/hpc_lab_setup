@@ -1,0 +1,17 @@
+---
+- name: Get CAP_SYS_ADMIN
+  shell: cat /proc/sys/kernel/perf_event_paranoid
+  register: cap_sys_admin
+- debug: var=cap_sys_admin
+
+- name: Set CAP_SYS_ADMIN to 2
+  shell: echo "2" | tee /proc/sys/kernel/perf_event_paranoid
+  when: cap_sys_admin.stdout != '2'
+
+- name: Call the benchmark_harness
+  shell: './benchmark_harness/benchmark_controller.py {{benchmark|default("") }} "--machine_type={{machine_type|default("") }}" "--toolchain={{compiler|default("") }}" "--compiler-flags={{compiler_flags|default("") }}" "--linker-flags={{linker_flags|default("") }}" "--run-flags={{run_flags|default("") }}" "--size={{size|default("") }}" "--iterations={{iterations|default("") }}" "--root-path="results"" "--unique-id={{unique_id|default("")}}" {{ harness_options|default("") }} -v'
+  register: benchmark_call_output
+- debug: var=benchmark_call_output.stderr_lines
+
+- name: Set CAP_SYS_ADMIN back to what it was before
+  shell: echo "{{ cap_sys_admin.stdout }}" | tee /proc/sys/kernel/perf_event_paranoid

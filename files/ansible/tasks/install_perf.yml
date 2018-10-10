@@ -1,0 +1,14 @@
+---
+- name: Install perf on Debian
+  apt:
+    name: linux-perf
+    state: present
+    update_cache: yes
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Install perf on Ubuntu
+  apt:
+    name: linux-tools-generic
+    state: present
+    update_cache: yes
+  when: ansible_facts.os_family == 'Ubuntu'

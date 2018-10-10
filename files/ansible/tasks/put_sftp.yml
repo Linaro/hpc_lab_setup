@@ -1,0 +1,5 @@
+---
+- name: Copy results to fileserver
+  shell: (echo "mkdir {{ sftp_dirname | mandatory }}" && echo "cd {{ sftp_dirname | mandatory }}" && echo "put {{ item.path | mandatory }}" && echo "exit") | sftp -o ForwardAgent=yes -o ConnectTimeout=60 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {{ sftp_user | mandatory }}@{{ sftp_server_ip | mandatory }}:/{{ sftp_path | mandatory }}
+  with_items:
+    - "{{ files_to_sftp | mandatory }}"

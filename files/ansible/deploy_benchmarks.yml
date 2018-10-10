@@ -1,0 +1,68 @@
+---
+- hosts: target
+  tasks:
+        - name: Install dependencies on any Linux system
+          package:
+            name: "{{ item }}"
+            state: present
+          with_items:
+              - python3
+              - python3-pip
+              - git
+              - build-essential
+              - unzip
+              - lhasa
+
+        - name: Try to call perf, to see if it's installed at all
+          shell: "perf --version"
+          ignore_errors: True
+          register: call_perf_test
+
+        - name: Try to install perf depending on ansible_facts.os_family
+          include_tasks: ./tasks/install_perf.yml
+          when: call_perf_test.failed == True
+
+        - name: IF THIS FAILS PLEASE INSTALL PERF MANUALLY
+          shell: "perf --version"
+          when: call_perf_test.failed == True
+
+        - name: Wipe harness directory
+          file:
+              path: "benchmark_harness"
+              state: "{{ item }}"
+          with_items:
+              - absent
+              - directory
+
+        - name: Get the benchmark_harness
+          git:
+              repo: https://github.com/Linaro/benchmark_harness.git
+              dest: benchmark_harness
+              version: "{{ branch | default('master') }}"
+
+        - name: Install pip requirements
+          shell: python3 -m pip install -r ./benchmark_harness/requirements.txt
+
+        - name: Wipe results directory
+          file:
+              path: "results"
+              state: "{{ item }}"
+          with_items:
+              - absent
+              - directory
+
+        - include_tasks: ./tasks/call_harness.yml
+
+        - name: Find results
+          find:
+            paths: "results/"
+            patterns: "^.*?\\.(?:err|out|manifest|stats)$"
+            use_regex: yes
+            recurse: yes
+          register: reports_path
+          failed_when: reports_path.matched == 0
+        - debug: var=reports_path
+
+        - include_tasks: ./tasks/put_sftp.yml
+          vars:
+            files_to_sftp: "{{ reports_path.files }}"
