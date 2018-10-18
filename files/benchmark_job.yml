@@ -133,7 +133,7 @@
                         fi
                         git clone https://github.com/Linaro/mr-provisioner-client.git "${WORKSPACE}/mr-provisioner-client"
 
-                        machine_ip=$( "${WORKSPACE}/mr-provisioner-client/mrp_client.py" getip "${node_type}bench" --mrp-token=$(cat "/home/${NODE_NAME}/mrp_token") --mrp-url="http://10.40.0.11:5000")
+                        machine_ip=$( "${WORKSPACE}/mr-provisioner-client/mrp_client.py" --mrp-token=$(cat "/home/${NODE_NAME}/mrp_token") --mrp-url="http://10.40.0.11:5000" net --action getip --machine "${node_type}bench" --interface eth1)
 
                         cat << EOF > "${WORKSPACE}/hosts"
                         [target]
