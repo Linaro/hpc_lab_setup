@@ -14,23 +14,25 @@ except ImportError:
 
 class TestParser(object):
     def __init__(self, json_or_xml):
+        self.test_factory = TestFactory()
         if str(json_or_xml) == "xml":
             self.formatter = JUnitXml()
             self.format = '.xml'
-        else:
+        elif str(json_or_xml) == 'json':
             # TODO: Implement a JSON format compatible with SQUAD
             # This means using the python (l)xml ElementTree (<=> TestSuite())
             self.formatter = None
             self.format = '.json'
+            raise NotImplementedError("JSON formatter not yet implemented... \
+                                      Pull requests are welcomed !")
+        else:
+            raise RuntimeError("Unknown json_or_xml argument : {0}".format(json_or_xml))
 
-        self.test_factory = TestFactory()
-
-    def main(self, results_path, test_threshold, output_path, extra=''):
+    def parse(self, results_path, test_threshold, output_path, extra=''):
         result = ""
         filename = os.path.basename(results_path)
         with open(results_path, 'r') as output:
-            for line in output.readlines():
-                result += line
+            result = output.read()
 
         test, test_type = self.test_factory.getTest(result)
         results, params = test.parse_output(result)
@@ -50,14 +52,11 @@ class TestParser(object):
         testcase.system_out = result
         suite.add_testcase(testcase)
 
-        if self.formatter is None:
-            raise ValueError("No Formatter given !")
-
         junit = self.formatter
         junit.add_testsuite(suite)
 
         if output_path[-1] != '/':
-            output_path+='/'
+            output_path += '/'
         junit.write(output_path + 'junit-' + filename + '-' + extra + self.format)
 
 if __name__ == '__main__':
@@ -79,5 +78,5 @@ if __name__ == '__main__':
                         required=False, help="Extra tag for the JUnit filename")
     args = parser.parse_args()
     test_parser = TestParser(args.formatter)
-    test_parser.main(args.results_path, args.threshold, args.output_path,
-                     args.extra_tag)
+    test_parser.parse(args.results_path, args.threshold, args.output_path,
+                      args.extra_tag)

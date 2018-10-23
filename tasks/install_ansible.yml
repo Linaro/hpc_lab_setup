@@ -18,3 +18,23 @@
   apt:
           name: ansible
           update_cache: yes
+
+- name: Localhost Install rsync and python3
+  package:
+          name: "{{ item }}"
+          state: present
+  with_items:
+          - rsync
+          - python3
+          - python3-pip
+
+- name: Create alias for the Python3 env
+  add_host:
+    name: "jenkins-py3 ansible_host={{ hostvars[jenkins]['ansible_default_ipv4']['address'] }} ansible_python_interpreter=/usr/bin/python3"
+    groups: jenkins
+
+
+- name: Localhost Install pip junitparser dependency
+  pip:
+          name: junitparser
+  delegate_to: jenkins-py3

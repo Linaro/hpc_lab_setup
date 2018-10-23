@@ -16,30 +16,16 @@ except ImportError:
 class TestFactory(object):
     def __init__(self):
         self.model_types = {
-                             'bibwtest_openmpi3_model': {'Bi-Directional Bandwidth Test': r'\s+OSU\sMPI\s(\w+[-]\w+\s\w+\s\w+)'},
-                             'bibwtest_model': {'Bidirectional BW Test': r'\s+RDMA_Write\s(\w+\s\w+\s\w+)'},
-                             'bwtest_model': {'BW Test': r'\s+RDMA_Write\s(\w+\s\w+)'},
-                             'bwtest_openmpi3_model': {'Bandwidth Test': r'\s+OSU\sMPI\s(\w+\s\w+)'},
-                             'latency_model': {'Latency Test': r'\s+RDMA_Write\s(\w+\s\w+)'},
-                             'latency_openmpi3_model': {'Latency Test': r'\s+OSU\sMPI\s(\w+\s\w+)'},
+                             'bibwtest_openmpi3_model': r'\s+OSU\sMPI\sBi-Directional\sBandwidth\sTest',
+                             'bwtest_openmpi3_model': r'\s+OSU\sMPI\sBandwidth\sTest',
+                             'latency_openmpi3_model': r'\s+OSU\sMPI\sLatency\sTest',
+                             'bibwtest_model': r'\s+RDMA_Write\sBidirectional\sBW\sTest',
+                             'bwtest_model': r'\s+RDMA_Write\sBW\sTest',
+                             'latency_model': r'\s+RDMA_Write\sLatency\sTest',
                            }
 
     def getTest(self, test_output):
-        return self._find_model(test_output)
-
-    def _get_model_name(self, test_output):
-        for model_name, model_type in self.model_types.items():
-            for field, regex in model_type.items():
-                match = re.search(regex, test_output)
-                if match is not None and match.group(1) == field:
-                    return model_name
-
-        return False
-
-    def _find_model(self, condition):
-        model = self._get_model_name(condition)
-        if model == False:
-            raise ImportError("Unable to find matching Test Model")
+        model = self._get_model_name(test_output)
         if model == 'bibwtest_model':
             return BiBwTestModel(), model
         elif model == 'bwtest_model':
@@ -52,3 +38,13 @@ class TestFactory(object):
             return MPIBwTestModel(), model
         elif model == 'latency_openmpi3_model':
             return MPILatencyTestModel(), model
+        else:
+            raise ImportError("Unable to find matching Test Model")
+
+    def _get_model_name(self, test_output):
+        for model, regex in self.model_types.items():
+            match = re.search(regex, test_output)
+            if match is not None:
+                return model
+
+        return None

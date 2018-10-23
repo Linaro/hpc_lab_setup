@@ -16,31 +16,32 @@ and puts the results into a Junit/Xunit XML files.
 version_added: "2.4"
 
 description:
-    - "This is my longer description explaining my sample module"
+    - "This module parses test output with regexes and puts the
+       results into a Junit/Xunit XML files."
 
 options:
     test_output_path:
         description:
-            - This is the path to the file containing the test's output.
+            - Path to the file containing the test's output.
         required: true
     test_threshold:
         description:
-            - This is the value that will determine the test result (via the
+            - Value that will determine the test result (via the
             failed method).
         required: true
     json_or_xml:
         description:
-            - This determines whether the parsed result is outputted in XML or
-            JSON. Currently JSON is not available, XML is default.
+            - Determines whether the parsed result is outputted in XML or
+              JSON. Currently JSON is not available, XML is default.
         required: false
     junit_write_path:
         description:
-            - This determines where the parsed JUnit/Xunit file will be
+            - Path to the parsed JUnit/Xunit file will be
             written.
         required: false
-    extra_flags:
+    tag:
         description:
-            - This determines the tag on the filename.
+            - Tag on the filename.
         required: false
 '''
 
@@ -52,7 +53,7 @@ EXAMPLES = '''
     test_output_path: "{{ playbook_dir }}/log-{{ test.name }}-{{ results_tag }}.txt"
     test_threshold: "{{ test.threshold }}"
     junit_write_path: "{{ workspace }}/results"
-    extra_flags: '55'
+    tag: '55'
 '''
 
 RETURN = '''
@@ -65,6 +66,7 @@ import re
 
 from ansible.module_utils.test_result_parser.parser import TestParser
 from ansible.module_utils.basic import AnsibleModule
+from ansible.errors import AnsibleError
 
 def run_module():
     module_args = dict(
@@ -72,7 +74,7 @@ def run_module():
         test_threshold=dict(type='str', required=True),
         json_or_xml=dict(type='str', required=False, default='xml'),
         junit_write_path=dict(type='str', required=False, default='./'),
-        extra_flags=dict(type='str', required=False, default='')
+        tag=dict(type='str', required=False, default='')
     )
 
     result = dict(
@@ -93,13 +95,17 @@ def run_module():
 
     try:
         test_parser = TestParser(module.params['json_or_xml'])
-        test_parser.main(module.params['test_output_path'],
-                         module.params['test_threshold'],
-                         module.params['junit_write_path'],
-                         module.params['extra_flags'])
+        test_parser.parse(module.params['test_output_path'],
+                          module.params['test_threshold'],
+                          module.params['junit_write_path'],
+                          module.params['tag'])
         result['message'] = 'Test parsed succesfully : result saved here, %s' % module_args['junit_write_path']
         result['changed'] = True
         module.exit_json(**result)
+    except AnsibleError as err:
+        result['message'] = 'Ansible Error raised !'
+        result['changed'] = False
+        module.fail_json(msg=repr(err), **result)
     except Exception as err:
         result['message'] = 'Failed to parse test !'
         result['changed'] = False
