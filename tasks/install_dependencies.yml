@@ -30,8 +30,10 @@
 
 - name: Create alias for the Python3 env
   add_host:
-    name: "jenkins-py3 ansible_host={{ hostvars[jenkins]['ansible_default_ipv4']['address'] }} ansible_python_interpreter=/usr/bin/python3"
+    name: "jenkins-py3"
     groups: jenkins
+    ansible_host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    ansible_python_interpreter: "/usr/bin/python3"
 
 
 - name: Localhost Install pip junitparser dependency

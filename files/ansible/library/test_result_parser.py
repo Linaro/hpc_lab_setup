@@ -29,11 +29,6 @@ options:
             - Value that will determine the test result (via the
             failed method).
         required: true
-    json_or_xml:
-        description:
-            - Determines whether the parsed result is outputted in XML or
-              JSON. Currently JSON is not available, XML is default.
-        required: false
     junit_write_path:
         description:
             - Path to the parsed JUnit/Xunit file will be
@@ -72,7 +67,6 @@ def run_module():
     module_args = dict(
         test_output_path=dict(type='str', required=True),
         test_threshold=dict(type='str', required=True),
-        json_or_xml=dict(type='str', required=False, default='xml'),
         junit_write_path=dict(type='str', required=False, default='./'),
         tag=dict(type='str', required=False, default='')
     )
@@ -94,7 +88,7 @@ def run_module():
     result['original_message'] = repr(module.params)
 
     try:
-        test_parser = TestParser(module.params['json_or_xml'])
+        test_parser = TestParser()
         test_parser.parse(module.params['test_output_path'],
                           module.params['test_threshold'],
                           module.params['junit_write_path'],
@@ -103,11 +97,11 @@ def run_module():
         result['changed'] = True
         module.exit_json(**result)
     except AnsibleError as err:
-        result['message'] = 'Ansible Error raised !'
+        result['message'] = 'Ansible Error raised'
         result['changed'] = False
         module.fail_json(msg=repr(err), **result)
     except Exception as err:
-        result['message'] = 'Failed to parse test !'
+        result['message'] = 'Failed to parse test'
         result['changed'] = False
         module.fail_json(msg=repr(err), **result)
 

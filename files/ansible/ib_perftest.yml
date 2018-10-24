@@ -56,7 +56,6 @@
 
           - name: Parse ib_write_bw test output and produces an JUnit/XUnit xml file (see README.md for options)
             test_result_parser:
-                    json_or_xml: 'xml'
                     test_output_path: "{{ playbook_dir }}/log-{{ item.name }}-{{ results_tag }}.txt"
                     test_threshold: "{{ item.threshold }}"
                     junit_write_path: "{{ workspace }}/results"

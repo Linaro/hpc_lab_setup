@@ -6,12 +6,8 @@
 import os
 import re
 
-try:
-    import test_models.testmodel
-    from test_models.test_model_implementations import *
-except ImportError:
-    import ansible.module_utils.test_result_parser.test_models.testmodel
-    from ansible.module_utils.test_result_parser.test_models.test_model_implementations import *
+import ansible.module_utils.test_result_parser.test_models.testmodel
+from ansible.module_utils.test_result_parser.test_models.test_model_implementations import *
 
 class TestFactory(object):
     def __init__(self):

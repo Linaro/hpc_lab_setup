@@ -4,12 +4,8 @@
 import re
 import os
 
-try:
-    from test_models.testmodel import TestModel
-    from test_models.parsing_strategies import *
-except ImportError:
-    from ansible.module_utils.test_result_parser.test_models.testmodel import TestModel
-    from ansible.module_utils.test_result_parser.test_models.parsing_strategies import *
+from ansible.module_utils.test_result_parser.test_models.testmodel import TestModel
+from ansible.module_utils.test_result_parser.test_models.parsing_strategy import *
 
 class BiBwTestModel(TestModel):
     def __init__(self):
@@ -32,16 +28,17 @@ class BiBwTestModel(TestModel):
         }
         self.result_list = ['bytes', 'iterations', 'BW Peak[Gb/s]', 'BW avg[Gb/s]', 'MsgRate[Mbps]']
         self.result_regex = re.compile(r'^\s+(\d+)\s+(\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+', re.M)
-        self.failure_test = lambda results, threshold: float(results['BW avg[Gb/s]']) < float(threshold)
+        self.failed = lambda results, threshold: float(results['BW avg[Gb/s]']) < float(threshold)
         self.strategy = SingleLabeledRow()
 
 class MPIBiBwTestModel(TestModel):
     def __init__(self):
         super().__init__()
         self.fail_msg = "Less than {0} Gb/s of BW !"
+        self.parameters_regex = dict()
         self.result_list = ['Size', 'Bandwidth']
         self.result_regex = re.compile(r'^(\d+)\s+(\d+.\d+)', re.M)
-        self.failure_test = lambda results, threshold: float(results['4194304']) < float(threshold)
+        self.failed = lambda results, threshold: float(results['4194304']) < float(threshold)
         self.strategy = SingleParameterIndexedColumn()
 
 class BwTestModel(TestModel):
@@ -65,16 +62,17 @@ class BwTestModel(TestModel):
         }
         self.result_list = ['bytes', 'iterations', 'BW Peak[Gb/s]', 'BW avg[Gb/s]', 'MsgRate[Mbps]']
         self.result_regex = re.compile(r'^\s+(\d+)\s+(\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+', re.M)
-        self.failure_test = lambda results, threshold: float(results['BW avg[Gb/s]']) < float(threshold)
+        self.failed = lambda results, threshold: float(results['BW avg[Gb/s]']) < float(threshold)
         self.strategy = SingleLabeledRow()
 
 class MPIBwTestModel(TestModel):
     def __init__(self):
         super().__init__()
         self.fail_msg = "Less than {0} Gb/s of BW !"
+        self.parameters_regex = dict()
         self.result_list = ['Size', 'Bandwidth']
         self.result_regex = re.compile(r'^(\d+)\s+(\d+.\d+)', re.M)
-        self.failure_test = lambda results, threshold: float(results['4194304']) < float(threshold)
+        self.failed = lambda results, threshold: float(results['4194304']) < float(threshold)
         self.strategy = SingleParameterIndexedColumn()
 
 class LatencyTestModel(TestModel):
@@ -99,14 +97,15 @@ class LatencyTestModel(TestModel):
                             't_max[usec]', 't_typical[usec]', 't_avg[usec]',
                             't_stdev[usec]', '99Perc[usec]', '99.9Perc[usec]']
         self.result_regex = re.compile(r'^\s+(\d+)\s+(\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+(\d+.\d+)\s+', re.M)
-        self.failure_test = lambda results, threshold: float(results['t_avg[usec]']) > float(threshold)
+        self.failed = lambda results, threshold: float(results['t_avg[usec]']) > float(threshold)
         self.strategy = SingleLabeledRow()
 
 class MPILatencyTestModel(TestModel):
     def __init__(self):
         super().__init__()
         self.fail_msg = "Latency superior to {0} usec !"
+        self.parameters_regex = dict()
         self.result_list = ['Size', 'Bandwidth']
         self.result_regex = re.compile(r'^(\d+)\s+(\d+.\d+)', re.M)
-        self.failure_test = lambda results, threshold: float(results['0']) > float(threshold)
+        self.failed = lambda results, threshold: float(results['0']) > float(threshold)
         self.strategy = SingleParameterIndexedColumn()

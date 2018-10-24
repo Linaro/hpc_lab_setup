@@ -7,7 +7,7 @@ class ParsingStrategy(object):
     def assignement(self, i, j, parsed_results, result_list, match_result):
         """ This is the non-common part of the parsing, as far as the set of
         test supported now are concerned"""
-        return parsed_results
+        raise NotImplementedError("This is a virtual method, please redefine in derived class")
 
     def parse(self, test, result_regex, result_list, parameters_regex):
         """ This is the common part of the parsing, it is in the strategy
@@ -40,3 +40,20 @@ class ParsingStrategy(object):
                                   regex)
 
         return parsed_results, parsed_params
+
+class SingleLabeledRow(ParsingStrategy):
+    """ This Strategy parses tables in this format :
+        [label] [label1] [lable2]
+        [value] [value1] [value2]
+        And puts the values in a label indexed dictionary"""
+    def assignement(self, i, j, parsed_results, result_list, match_result):
+        parsed_results[result_list[i]] = str(match_result[j][i])
+
+class SingleParameterIndexedColumn(ParsingStrategy):
+    """ This Strategy parses tables in this format :
+        [label] [label1]
+        [param] [value]
+        [...]   [...]
+        And puts the values in a parameter indexed dictionary"""
+    def assignement(self, i, j, parsed_results, result_list, match_result):
+        parsed_results[str(match_result[j][0])] = str(match_result[j][1])

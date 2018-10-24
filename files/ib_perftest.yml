@@ -30,65 +30,20 @@
                                  - job-read
          parameters:
                  - node:
-                         name: host_machine
+                         name: cluster
                          allowed-slaves:
                                  - d05ohpc
-                                 - d0301
-                                 - d0302
-                                 - d0303
+                                 - qdcohpc
                          allowed-multiselect: False
-                         description: 'Node which will host the perftest'
-                 - choice:
-                         name: target_machine
-                         allowed-slaves:
-                                 - d05ohpc
-                                 - d0301
-                                 - d0302
-                                 - d0303
-                         allowed-multiselect: False
-                         description: 'Node which will assist in the perftest'
-                 - choice:
-                         name: do_perftest
-                         choices:
-                                 - True
-                                 - False
-                         default: 'True'
-                         description: 'Do the perftest using ib_write*'
-                 - choice:
-                         name: do_mpitest
-                         choices:
-                                 - True
-                                 - False
-                         default: 'True'
-                         description: 'Do the MPI perftests'
+                         description: 'Which cluster to use'
                  - string:
-                         name: latency_threshold
-                         default: '3.0'
-                         description: 'Threshold above which Latency test is failed'
-                 - string:
-                         name: bw_threshold
-                         default: '45.0'
-                         description: 'Threshold below which Bandwidth test is failed'
-                 - string:
-                         name: bibw_threshold
-                         default: '45.0'
-                         description: 'Threshold below which Bidirectional Bandwidth test is failed'
-                 - string:
-                         name: mpilat_threshold
-                         default: '3.0'
-                         description: 'Threshold above which MPI Latency test is failed'
-                 - string:
-                         name: mpibw_threshold
-                         default: '1700'
-                         description: 'Threshold below which MPI Bandwidth test is failed'
-                 - string:
-                         name: mpibibw_threshold
-                         default: '1700'
-                         description: 'Threshold below which MPI Bidirectional Bandwidth test is failed'
-                 - string:
-                         name: git_branch
+                         name: automation_branch
                          default: 'production'
-                         description: 'Branch name of the ohpc install recipe'
+                         description: 'Branch name of the ib_perftest recipe'
+                 - string:
+                         name: client_branch
+                         default: 'production'
+                         description: 'Branch name of the MrP client to use'
          builders:
                  - shell: |
                         #!/bin/bash
@@ -96,19 +51,29 @@
                         if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
                             rm -rf ${WORKSPACE}/mr-provisioner-client
                         fi
-                        git clone https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
 
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
 
+                        if [ ${cluster} == 'd05ohpc' ]; then
+                                host_machine='d05ohpc'
+                                remote_machine='d0301'
+                        fi
+
+                        if [ ${cluster} == 'qdcohpc' ]; then
+                                host_machine='qdcohpc'
+                                remote_machine='qdc01'
+                        fi
+
                         host_machine_ip=$( ${WORKSPACE}/mr-provisioner-client/mrp_client.py getip ${host_machine} --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
                         remote_machine_ip=$( ${WORKSPACE}/mr-provisioner-client/mrp_client.py getip ${remote_machine} --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
 
-                        # Get the XXX in 10.40.24.XXX to make 192.168.0.XXX
+                        # Get the XXX in 10.40.24.XXX to make 192.168.100.XXX
                         IFS="." read -ra REMOTE <<< "$remote_machine_ip"
-                        remote_ib_ip="192.168.0.${REMOTE[-1]}"
+                        remote_ib_ip="192.168.100.${REMOTE[-1]}"
                         IFS="." read -ra HOST <<< "$host_machine_ip"
-                        host_ib_ip="192.168.0.${HOST[-1]}"
+                        host_ib_ip="192.168.100.${HOST[-1]}"
 
                         # We'll be using the same port number for all machines
                         host_ib_devnb='1'
@@ -117,20 +82,20 @@
                         # Prepare the 'tests' dictionary
                         tests = ''
                         if [ ${do_perftest} == 'True' ]; then
-                                tests+="- name: bw\n  threshold: ${bw_threshold}\n"
-                                tests+="- name: bibw\n  threshold: ${bibw_threshold}\n"
-                                tests+="- name: lat\n  threshold: ${latency_threshold}\n"
+                                tests+="- name: bw\n  threshold: '45.0'\n"
+                                tests+="- name: bibw\n  threshold: '45.0'\n"
+                                tests+="- name: lat\n  threshold: '3.0'\n"
                         fi
                         if [ ${do_mpitest} == 'True' ]; then
-                                tests+="- name: mpibw\n  threshold: ${mpibw_threshold}\n"
-                                tests+="- name: mpibibw\n  threshold: ${mpibibw_threshold}\n"
-                                tests+="- name: mpilat\n  threshold: ${mpilat_threshold}\n"
+                                tests+="- name: mpibw\n  threshold: '1700'\n"
+                                tests+="- name: mpibibw\n  threshold: '1700'\n"
+                                tests+="- name: mpilat\n  threshold: '3.0'\n"
                         fi
 
                         if [ -d ${WORKSPACE}/hpc_lab_setup ]; then
                             rm -rf ${WORKSPACE}/hpc_lab_setup
                         fi
-                        git clone -b ${git_branch} https://github.com/Linaro/hpc_lab_setup.git ${WORKSPACE}/hpc_lab_setup
+                        git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git ${WORKSPACE}/hpc_lab_setup
 
                         cat << EOF > ${WORKSPACE}/hosts
                         localhost-py3 ansible_host=localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python3
@@ -145,8 +110,8 @@
                         host_ib_devnb: ${host_ib_devnb}
                         remote_ib_devnb: ${remote_ib_devnb}
                         results_tag: ${host_machine}-${remote_machine}-${BUILD_NUMBER}
-                        do_perftest: ${do_perftest}
-                        do_mpitest: ${do_perftest}
+                        do_perftest: True
+                        do_mpitest: True
                         tests:
                         $(echo -e "${tests}")
                         EOF
