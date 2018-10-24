@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+          - name: Provision with localhost
+            shell: "{{ workspace }}/mr-provisioner-client/mrp_client.py --mrp-url={{ mrp_url | quote }} --mrp-token={{ mrp_token | quote }} state --action provision --machine {{ item | quote }} --preseed-name {{ preseed_name | quote }} --initrd-desc {{ initrd_desc | quote }} --kernel-desc {{ kernel_desc | quote }} --kernel-opts {{ kernel_opts | quote }} --arch {{ arch | quote }} --subarch {{ subarch | quote }}"
+            with_items:
+                    - "{{ machines }}"
+
+- hosts: targets
+  gather_facts: no
+  remote_user: root
+  tasks:
+          - name: Wait for host for 3600 seconds, but only start checking after sixty sec
+            wait_for_connection:
+                    delay: 60
+                    timeout: 3600

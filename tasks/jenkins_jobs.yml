@@ -10,7 +10,6 @@
           group: root
           mode: u=rx,g=rx,o=rwx
   with_items:
-          - "files/provisioning.py"
           - "files/tarball_cacher.py"
 
 - name: Copy yaml job definition(s)

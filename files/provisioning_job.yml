@@ -66,44 +66,66 @@
                          default: ''
                          description: 'The arguments to be passed to the kernel'
                  - string:
-                         name: kernel_path
-                         default: ''
-                         description: 'The path to the kernel file to be (non compulsory) uploaded'
-                 - string:
-                         name: initrd_path
-                         default: ''
-                         description: 'The path to the initrd file to be (non compulsory) uploaded'
-                 - string:
-                         name: preseed_path
-                         default: ''
-                         description: 'The path to the preseed file to be (non compulsory) uploaded'
-                 - choice:
-                         name: branch
-                         choices:
-                            - master
-                            - bger
-                            - rengolin
+                         name: client_branch
                          default: 'master'
-                         description: 'The branch of the provisioning job to use'
+                         description: 'The branch of the mrp client to use'
+                 - string:
+                         name: automation_branch
+                         default: 'master'
+                         description: 'The Ansible logic branch to use'
          builders:
                  - shell: |
-                         cd ${WORKSPACE}
+                         #!/bin/bash
+                         set -x
                          mname=$( echo $machine_name| cut -d',' -f 1)
-                         echo "Provisioning ${mname} with ${kernel_desc} and ${intrd_desc}"
-                         DIR_NAME=${mname}$(date +%s)
-                         mkdir ${DIR_NAME}
-                         cd ${DIR_NAME}
-                         # TODO: provisioning.py needs this repo to work
-                         # remove the need for the python script altogether
-                         git clone -b ${branch} https://github.com/Linaro/ansible-role-mr-provisioner.git
-                         provisioner_url=http://10.40.0.11:5000
-                         provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
-                         ${JENKINS_HOME}/scripts/provisioning.py "${PWD}" "${machine_name}" "${provisioner_url}" "${provisioner_token}" "${kernel_desc}" "${initrd_desc}" "${preseed_name}" "${preseed_type}" "${machine_arch}" "${machine_subarch}" "${kernel_opts}" "${kernel_path}" "${initrd_path}" "${preseed_path}"
-                         if [ ! -f hosts ]; then
-                                exit 1
-                         fi
-                         if [ ! -f provisioning${mname}.yml ]; then
-                                exit 1
-                         fi
+                         mrp_url=http://10.40.0.11:5000
+                         mrp_token=$(cat "/home/${NODE_NAME}/mrp_token")
 
-                         ansible-playbook provisioning${mname}.yml -i hosts --ssh-common-args="-o UserKnownHostsFile=/dev/null"
+                         echo "Provisioning ${mname} with ${kernel_desc} and ${intrd_desc}"
+
+                         if [ -d "${WORKSPACE}/mr-provisioner-client" ]; then
+                                rm -rf ${WORKSPACE}/mr-provisioner-client
+                         fi
+                         git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+
+                         DIR_NAME=${mname}$(date +%s)
+                         if [ -d "${WORKSPACE}/${DIR_NAME}" ]; then
+                                rm -rf ${WORKSPACE}/${DIR_NAME}
+                         fi
+                         mkdir ${WORKSPACE}/${DIR_NAME}
+
+                         IFS=',' read -ra mlist <<< "$machine_name"
+
+                         #Build hosts file
+                         cat << EOF > ${WORKSPACE}/${DIR_NAME}/hosts
+                         [targets]
+                         $(for i in "${mlist[@]}"; do echo "$(${WORKSPACE}/mr-provisioner-client/mrp_client.py --mrp-url=${mrp_url} --mrp-token=${mrp_token} net --action getip --machine $i --interface eth1)"; done)
+                         EOF
+
+                         #Build machine params list
+                         cat << EOF > ${WORKSPACE}/${DIR_NAME}/provision.yml
+                         workspace: ${WORKSPACE}
+                         mrp_url: ${mrp_url}
+                         mrp_token: ${mrp_token}
+                         kernel_desc: ${kernel_desc}
+                         initrd_desc: ${initrd_desc}
+                         preseed_name: ${preseed_name}
+                         arch: ${machine_arch}
+                         subarch: ${machine_subarch}
+                         kernel_opts: ${kernel_opts}
+                         machines:
+                         $(for i in "${mlist[@]}"; do echo "- $i"; done)
+                         EOF
+
+                         if [ -d "${WORKSPACE}/hpc_lab_setup" ]; then
+                             rm -rf "${WORKSPACE}/hpc_lab_setup"
+                         fi
+                         git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git "${WORKSPACE}/hpc_lab_setup"
+
+                         eval `ssh-agent`
+                         ssh-add
+                         ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v "${WORKSPACE}/hpc_lab_setup/files/ansible/provisioning_job.yml" -i "${WORKSPACE}/${DIR_NAME}/hosts"  --extra-vars="@${WORKSPACE}/${DIR_NAME}/provision.yml"
+                         ret=$?
+                         ssh-agent -k
+
+                         exit $ret

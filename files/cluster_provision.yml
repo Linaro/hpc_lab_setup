@@ -37,6 +37,14 @@
                                  - qdc
                          default: 'qdc'
                          description: 'The cluster of machines to be provisioned'
+                 - string:
+                         name: client_branch
+                         default: 'master'
+                         description: 'The branch of the mrp client to use'
+                 - string:
+                         name: automation_branch
+                         default: 'master'
+                         description: 'The Ansible logic branch to use'
          builders:
                  - shell: |
                         #!/bin/bash
@@ -74,6 +82,8 @@
                         kernel_path=
                         initrd_path=
                         preseed_path=
+                        automation_branch=${automation_branch}
+                        clint_branch=${client_branch}
                         EOF
 
                  - conditional-step:

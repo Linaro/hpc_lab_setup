@@ -54,6 +54,14 @@
                                  - centos-upstream
                          default: 'default'
                          description: 'The OS distro. Default: Debian for benchmark, CentOS for openhpc'
+                 - string:
+                         name: client_branch
+                         default: 'master'
+                         description: 'The branch of the mrp client to use'
+                 - string:
+                         name: automation_branch
+                         default: 'master'
+                         description: 'The Ansible logic branch to use'
          builders:
                  - shell: |
                         #!/bin/bash
@@ -111,9 +119,8 @@
                         preseed_name=${preseed_name}
                         preseed_type=${preseed_type}
                         kernel_opts=${kernel_opts}
-                        kernel_path=
-                        initrd_path=
-                        preseed_path=
+                        client_branch=${client_branch}
+                        automation_branch=${automation_branch}
                         EOF
 
                  - conditional-step:
