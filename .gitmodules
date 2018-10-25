@@ -1,3 +1,0 @@
-[submodule "roles/ansible-role-mr-provisioner"]
-	path = roles/ansible-role-mr-provisioner
-	url = https://github.com/Linaro/ansible-role-mr-provisioner

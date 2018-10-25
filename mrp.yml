@@ -9,19 +9,15 @@
   vars_files:
           - vars/mrp_creds.yml.secret
           - vars/list_preseeds.yml
-  roles:
-          - role: ansible-role-mr-provisioner
   tasks:
+          - name: Get the MrP client
+            git:
+                 repo: 'https://github.com/Linaro/mr-provisioner-client.git'
+                 dest: './mr-provisioner-client'
+                 version: 'master'
+
           - name: Upload preseed from info in list_preseed.yml
-            mr_provisioner_preseed:
-                    name: "{{ item.name }}"
-                    description: "{{ item.description }}"
-                    type: "{{ item.type }}"
-                    path: "{{ item.path }}"
-                    url: "{{ mr_provisioner_url }}"
-                    token: "{{ mr_provisioner_auth_token }}"
-                    public: "{{ item.public | default(true) }}"
-                    known_good: "{{ item.known_good | default(true) }}"
+            shell: "./mr-provisioner-client/mrp_client.py --mrp-url={{ mr_provisioner_url | quote }} --mrp-token={{ mr_provisioner_auth_token | quote }} preseed --action upload --preseed-name {{ item.name | quote }} --description {{ item.description | quote }} --type {{ item.type }} --preseed-path {{ item.path | quote }} --knowngood --public"
             with_items: "{{ list_preseeds }}"
 
 # TODO: When MrP allows adding users to machines, add jenkins user to all
