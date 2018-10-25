@@ -2,16 +2,6 @@
 - name: Ensure script dir exists
   file: path="/var/lib/jenkins/scripts" state=directory
 
-- name: Copy the helper scripts to Jenkins Master's script dir
-  copy:
-          src: "{{ item }}"
-          dest: "/var/lib/jenkins/scripts/"
-          owner: root
-          group: root
-          mode: u=rx,g=rx,o=rwx
-  with_items:
-          - "files/tarball_cacher.py"
-
 - name: Copy yaml job definition(s)
   copy:
       src: "files/{{ item }}.yml"

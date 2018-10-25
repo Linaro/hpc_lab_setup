@@ -122,8 +122,13 @@
                             ;;
                         esac
 
+                        if [ -d "${WORKSPACE}/hpc_lab_setup" ]; then
+                            rm -rf "${WORKSPACE}/hpc_lab_setup"
+                        fi
+                        git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git "${WORKSPACE}/hpc_lab_setup"
+
                         if [[ ${compiler} = *"http://"* ]] || [[ ${compiler} = *"ftp://"* ]]; then
-                                ${JENKINS_HOME}/scripts/tarball_cacher.py ${compiler} /tmp/ --upload=sftp://10.40.0.13/toolchains
+                                ${WORKSPACE}/hpc_lab_setup/files/tarball_cacher.py ${compiler} /tmp/ --upload=sftp://10.40.0.13/toolchains
                                 file=$(basename ${compiler})
                                 compiler="http://10.40.0.13/toolchains/${file}"
                         fi
@@ -157,11 +162,6 @@
                         run_flags: ${run_flags}
                         harness_options: ${harness_options}
                         EOF
-
-                        if [ -d "${WORKSPACE}/hpc_lab_setup" ]; then
-                            rm -rf "${WORKSPACE}/hpc_lab_setup"
-                        fi
-                        git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git "${WORKSPACE}/hpc_lab_setup"
 
                         ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v -u root "${WORKSPACE}/hpc_lab_setup/files/ansible/deploy_benchmarks.yml" -i "${WORKSPACE}/hosts"  --extra-vars="@${WORKSPACE}/benchmark_job.yml"
                         ssh-agent -k 

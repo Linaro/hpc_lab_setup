@@ -40,8 +40,7 @@ class TarballCacher(object):
         # TODO: This looks really unnecessary
         url = self.args.upload
         if len(url.split('/')) < 3:
-            raise EnvironmentError('SFTP URL is not valid %s' %
-                                   url)
+            raise EnvironmentError('SFTP URL is not valid %s' % url)
         if len(url.split('/')) == 4:
             sftp_dirpath = '/'
         else:
