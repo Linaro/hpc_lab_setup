@@ -42,12 +42,3 @@
           state: present
           key: "{{ master_sshkey }}" 
   with_list: "{{ jslave_list }}"
-
-- name: Copy the playbook maker script to their home dir
-  copy:
-          src: "../files/provisioning.py"
-          dest: "/home/{{ item }}/"
-          owner: "{{ item }}"
-          group: "jenkins_slave"
-          mode: u=rx,g=rx,o=rwx 
-  with_list: "{{ jslave_list }}"
