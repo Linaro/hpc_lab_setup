@@ -37,21 +37,17 @@
                          allowed-multiselect: False
                          description: 'Which cluster to use'
                  - string:
-                         name: automation_branch
-                         default: 'production'
-                         description: 'Branch name of the ib_perftest recipe'
-                 - string:
                          name: client_branch
-                         default: 'production'
+                         default: 'master'
                          description: 'Branch name of the MrP client to use'
+                 - string:
+                         name: automation_branch
+                         default: 'master'
+                         description: 'Branch name of the ib_perftest recipe'
          builders:
                  - shell: |
                         #!/bin/bash
                         set -ex
-                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
-                            rm -rf ${WORKSPACE}/mr-provisioner-client
-                        fi
-                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
 
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
@@ -59,15 +55,18 @@
                         if [ ${cluster} == 'd05ohpc' ]; then
                                 host_machine='d05ohpc'
                                 remote_machine='d0301'
-                        fi
-
-                        if [ ${cluster} == 'qdcohpc' ]; then
+                        elif [ ${cluster} == 'qdcohpc' ]; then
                                 host_machine='qdcohpc'
                                 remote_machine='qdc01'
                         fi
 
-                        host_machine_ip=$( ${WORKSPACE}/mr-provisioner-client/mrp_client.py getip ${host_machine} --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
-                        remote_machine_ip=$( ${WORKSPACE}/mr-provisioner-client/mrp_client.py getip ${remote_machine} --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token})
+                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
+                            rm -rf ${WORKSPACE}/mr-provisioner-client
+                        fi
+                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+
+                        host_machine_ip=$( "${WORKSPACE}/mr-provisioner-client/mrp_client.py" --mrp-token=${mr_provisioner_token} --mrp-url=${mr_provisioner_url} net --action getip --machine "${host_machine}" --interface eth1)
+                        remote_machine_ip=$( "${WORKSPACE}/mr-provisioner-client/mrp_client.py" --mrp-token=${mr_provisioner_token} --mrp-url=${mr_provisioner_url} net --action getip --machine "${remote_machine}" --interface eth1)
 
                         # Get the XXX in 10.40.24.XXX to make 192.168.100.XXX
                         IFS="." read -ra REMOTE <<< "$remote_machine_ip"
@@ -78,24 +77,6 @@
                         # We'll be using the same port number for all machines
                         host_ib_devnb='1'
                         remote_ib_devnb='1'
-
-                        # Prepare the 'tests' dictionary
-                        tests = ''
-                        if [ ${do_perftest} == 'True' ]; then
-                                tests+="- name: bw\n  threshold: '45.0'\n"
-                                tests+="- name: bibw\n  threshold: '45.0'\n"
-                                tests+="- name: lat\n  threshold: '3.0'\n"
-                        fi
-                        if [ ${do_mpitest} == 'True' ]; then
-                                tests+="- name: mpibw\n  threshold: '1700'\n"
-                                tests+="- name: mpibibw\n  threshold: '1700'\n"
-                                tests+="- name: mpilat\n  threshold: '3.0'\n"
-                        fi
-
-                        if [ -d ${WORKSPACE}/hpc_lab_setup ]; then
-                            rm -rf ${WORKSPACE}/hpc_lab_setup
-                        fi
-                        git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git ${WORKSPACE}/hpc_lab_setup
 
                         cat << EOF > ${WORKSPACE}/hosts
                         localhost-py3 ansible_host=localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python3
@@ -112,8 +93,6 @@
                         results_tag: ${host_machine}-${remote_machine}-${BUILD_NUMBER}
                         do_perftest: True
                         do_mpitest: True
-                        tests:
-                        $(echo -e "${tests}")
                         EOF
 
                         if [ -d ${WORKSPACE}/results ]; then
@@ -121,9 +100,14 @@
                         fi
                         mkdir ${WORKSPACE}/results
 
+                        if [ -d ${WORKSPACE}/hpc_lab_setup ]; then
+                            rm -rf ${WORKSPACE}/hpc_lab_setup
+                        fi
+                        git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git ${WORKSPACE}/hpc_lab_setup
+
                         eval `ssh-agent`
                         ssh-add
-                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v -u root "${WORKSPACE}/hpc_lab_setup/files/ansible/ib_perftest.yml" -i "${WORKSPACE}/hosts"  --extra-vars="@${WORKSPACE}/ib_perftest_args.yml"
+                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v -u root "${WORKSPACE}/hpc_lab_setup/files/ansible/ib_perftest.yml" -i "${WORKSPACE}/hosts"  --extra-vars="@${WORKSPACE}/ib_perftest_args.yml" --extra-vars="@${WORKSPACE}/hpc_lab_setup/files/ibperftest_thresholds.yml"
                         ssh-agent -k 
 
          publishers:

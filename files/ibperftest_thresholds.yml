@@ -1,0 +1,14 @@
+---
+tests:
+        - name: bw
+          threshold: '45.0'
+        - name: bibw
+          threshold: '45.0'
+        - name: lat
+          threshold: '3.0'
+        - name: mpibw
+          threshold: '1700'
+        - name: mpibibw
+          threshold: '1700'
+        - name: mpilat
+          threshold: '3.0'

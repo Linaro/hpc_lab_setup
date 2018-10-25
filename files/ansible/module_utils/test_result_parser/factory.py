@@ -6,8 +6,7 @@
 import os
 import re
 
-import ansible.module_utils.test_result_parser.test_models.testmodel
-from ansible.module_utils.test_result_parser.test_models.test_model_implementations import *
+from ansible.module_utils.test_result_parser.test_models.testmodel import *
 
 class TestFactory(object):
     def __init__(self):
