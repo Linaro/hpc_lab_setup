@@ -53,7 +53,7 @@
                          description: 'The length of the tests' 
                  - string:
                          name: git_branch
-                         default: 'production'
+                         default: 'linaro'
                          description: 'Branch name of the ohpc install recipe'
          builders:
                  - shell: |

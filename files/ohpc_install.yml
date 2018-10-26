@@ -46,7 +46,7 @@
                          description: 'The type of OHPC install to do'
                  - string:
                          name: git_branch
-                         default: 'production'
+                         default: 'linaro'
                          description: 'Branch name of the ohpc install recipe'
                  - string:
                          name: slurmconf
