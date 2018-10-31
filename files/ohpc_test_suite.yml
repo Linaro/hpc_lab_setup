@@ -52,21 +52,17 @@
                          default: 'short'
                          description: 'The length of the tests' 
                  - string:
-                         name: git_branch
+                         name: client_branch
+                         default: 'master'
+                         description: 'Branch name of the ohpc install recipe'
+                 - string:
+                         name: automation_branch
                          default: 'linaro'
                          description: 'Branch name of the ohpc install recipe'
          builders:
                  - shell: |
                         #!/bin/bash
                         set -ex
-                        cd ${WORKSPACE}
-                        eval `ssh-agent`
-                        ssh-add
-                                
-                        if [ -d mr-provisioner-client ]; then
-                            rm -rf mr-provisioner-client
-                        fi
-                        git clone https://github.com/Linaro/mr-provisioner-client.git
                         arch='aarch64'
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
@@ -77,10 +73,6 @@
                                 cnode02='qdc02'
                                 cnode03='qdc03'
                                 num_compute='3'
-                                master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine qdcohpc --interface eth1)
-                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine qdc01 --interface eth1)
-                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine qdc02 --interface eth1)
-                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine qdc03 --interface eth1)
                                 compute_regex='qdc0[1-3]'
                         elif [ ${node} == 'd05ohpc' ]; then
                                 master_name='d05ohpc'
@@ -88,12 +80,18 @@
                                 cnode02='d0302'
                                 cnode03='d0303'
                                 num_compute='3' 
-                                master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine d05ohpc --interface eth1)
-                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine d0301 --interface eth1)
-                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine d0302 --interface eth1)
-                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine d0303 --interface eth1)
                                 compute_regex='d030[1-3]'
                         fi
+
+                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
+                            rm -rf ${WORKSPACE}/mr-provisioner-client
+                        fi
+                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+
+                        master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${master_name} --interface eth1)
+                        cnode01ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode01} --interface eth1)
+                        cnode02ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode02} --interface eth1)
+                        cnode03ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode03} --interface eth1)
 
                         if [ ${method} == 'stateful' ]; then
                                 enable_warewulf=False
@@ -101,12 +99,12 @@
                                 enable_warewulf=True
                         fi
                         
-                        if [ -d ansible-playbook-for-ohpc ]; then
-                            rm -rf ansible-playbook-for-ohpc
+                        long='disable'
+                        if [ ${test_type} == 'long' ]; then
+                                long='enable'
                         fi
-                        git clone -b ${git_branch} https://github.com/Linaro/ansible-playbook-for-ohpc.git
 
-                        cat << EOF > hosts
+                        cat << EOF > ${WORKSPACE}/hosts
                         [sms]
                         ${master_ip}
                         [cnodes]
@@ -119,14 +117,7 @@
                         ${master_ip}
                         EOF
 
-                        long='disable'
-                        
-                        if [ ${test_type} == 'long' ]; then
-                                long='enable'
-                        fi
-
-
-                        cat << EOF > ohpc_installation.yml
+                        cat << EOF > ${WORKSPACE}/ohpc_installation.yml
                         sms_name: ${master_name}
                         sms_ip: ${master_ip}
                         enable_warewulf: ${enable_warewulf}
@@ -244,19 +235,25 @@
                         compiler_families: gnu7
                         EOF
 
-                        cd ansible-playbook-for-ohpc
-                        ansible-playbook run_testsuite.yml --extra-vars="@../ohpc_installation.yml" -i ../hosts
-                        cd ${WORKSPACE}
+                        if [ -d ${WORKSPACE}/ansible-playbook-for-ohpc ]; then
+                            rm -rf ${WORKSPACE}/ansible-playbook-for-ohpc
+                        fi
+                        git clone -b ${automation_branch} https://github.com/Linaro/ansible-playbook-for-ohpc.git ${WORKSPACE}/ansible-playbook-for-ohpc
 
-                        if [ -f "${master_ip}/tmp/junit-results.tar.gz" ]; then
+                        eval `ssh-agent`
+                        ssh-add
+                        ANSIBLE_CONFIG=${WORKSPACE}/ansible-playbook-for-ohpc/ansible.cfg ansible-playbook ${WORKSPACE}/ansible-playbook-for-ohpc/run_testsuite.yml --extra-vars="@${WORKSPACE}/ohpc_installation.yml" -i ${WORKSPACE}/hosts
+                        ssh-agent -k
+
+                        if [ -f "${WORKSPACE}/${master_ip}/tmp/junit-results.tar.gz" ]; then
                             rm -rf ${WORKSPACE}/results
                             mkdir ${WORKSPACE}/results
-                            tar -xf ${master_ip}/tmp/junit-results.tar.gz -C ${WORKSPACE}/results
+                            tar -xf ${WORKSPACE}/${master_ip}/tmp/junit-results.tar.gz -C ${WORKSPACE}/results
                         else
                             echo "FAILURE"
+                            exit 1
                         fi
 
-                        ssh-agent -k 
 
          publishers:
                  - junit:
