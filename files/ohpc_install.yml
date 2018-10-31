@@ -41,32 +41,25 @@
                          name: method
                          choices:
                                  - stateful
-                                 - stateless
                          default: 'stateful'
                          description: 'The type of OHPC install to do'
                  - string:
-                         name: git_branch
+                         name: client_branch
+                         default: 'master'
+                         description: 'Branch name of the mr-provisioner-client to use'
+                 - string:
+                         name: automation_branch
                          default: 'linaro'
                          description: 'Branch name of the ohpc install recipe'
-                 - string:
-                         name: slurmconf
-                         default: ''
-                         description: 'An ftp address to the slurm.conf file to use'
          builders:
                  - shell: |
                         #!/bin/bash
                         set -ex
-                        cd ${WORKSPACE}
-                        eval `ssh-agent`
-                        ssh-add
-                                
-                        if [ -d mr-provisioner-client ]; then
-                            rm -rf mr-provisioner-client
-                        fi
-                        git clone https://github.com/Linaro/mr-provisioner-client.git
+
                         arch='aarch64'
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
+                        force_service=True
 
                         if [ ${node} == 'qdcohpc' ]; then
                                 master_name='qdcohpc'
@@ -76,13 +69,6 @@
                                 master_eth_internal='eth0'
                                 eth_provision='eth0'
                                 num_compute='3'
-                                master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine qdcohpc --interface eth1 )
-                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine qdc01 --interface eth1 )
-                                cnode01mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine qdc01 --interface eth1 )
-                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine qdc02 --interface eth1 )
-                                cnode02mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine qdc02 --interface eth1 )
-                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine qdc03 --interface eth1 )
-                                cnode03mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine qdc03 --interface eth1 )
                                 compute_prefix='qdc0'
                                 compute_regex='qdc0[1-3]'
                                 kargs=''
@@ -95,17 +81,23 @@
                                 master_eth_internal='enahisic2i1'
                                 eth_provision='enahisic2i1'
                                 num_compute='3' 
-                                master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine d05ohpc --interface eth1)
-                                cnode01ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine d0301 --interface eth1)
-                                cnode01mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine d0301 --interface eth1)
-                                cnode02ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine d0302 --interface eth1)
-                                cnode02mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine d0302 --interface eth1)
-                                cnode03ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine d0303 --interface eth1)
-                                cnode03mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine d0303 --interface eth1)
                                 compute_prefix='d030'
                                 compute_regex='d030[1-3]'
                                 kargs=''
                         fi
+
+                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
+                            rm -rf ${WORKSPACE}/mr-provisioner-client
+                        fi
+                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+
+                        master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${master_name} --interface eth1 )
+                        cnode01ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode01} --interface eth1 )
+                        cnode01mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine ${cnode01} --interface eth1 )
+                        cnode02ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode02} --interface eth1 )
+                        cnode02mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine ${cnode02} --interface eth1 )
+                        cnode03ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode03} --interface eth1 )
+                        cnode03mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine ${cnode03} --interface eth1 )
 
                         if [ ${method} == 'stateful' ]; then
                                 internal_network='10.40.0.0'
@@ -114,7 +106,7 @@
                                 internal_gateway='10.40.0.1'
                                 internal_dns=${internal_gateway}
                                 internal_domain_name=''
-                                # Enable components optionis
+                                # Enable components options
                                 enable_beegfs_client=False
                                 enable_mpi_defaults=True
                                 enable_mpi_opa=False
@@ -138,25 +130,11 @@
                                 enable_helloworld=True
 
                         else
-                                echo 'Not implemented yet !!'
-                        fi
-                        
-                        if [ -d ansible-playbook-for-ohpc ]; then
-                            rm -rf ansible-playbook-for-ohpc
-                        fi
-                        git clone -b ${git_branch} https://github.com/Linaro/ansible-playbook-for-ohpc.git
-
-
-                        # Retrieve the slurm.conf file
-                        if [ ${slurmconf} != '' ]; then
-                                olddir=$(pwd)
-                                cd ansible-playbook-for-ohpc/roles/slurm-client/files
-                                sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no 10.40.0.13:${slurmconf}
-                                mv $(basename ${slurmconf}) slurm.conf
-                                cd ${olddir}
+                                echo 'Stateless not implemented'
+                                exit 1
                         fi
 
-                        cat << EOF > hosts
+                        cat << EOF > ${WORKSPACE}/hosts
                         [sms]
                         ${master_ip}
                         [cnodes]
@@ -169,8 +147,7 @@
                         ${master_ip}
                         EOF
 
-
-                        cat << EOF > ohpc_installation.yml
+                        cat << EOF > ${WORKSPACE}/ohpc_installation.yml
                         sms_name: ${master_name}
                         sms_ip: ${master_ip}
                         sms_eth_internal: ${master_eth_internal}
@@ -182,6 +159,7 @@
                         internal_domain_name_servers: ${internal_dns}
                         eth_provision: ${eth_provision}
                         cnode_eth_internal: ${eth_provision}
+                        force_service: ${force_service}
                         enable_beegfs_client: ${enable_beegfs_client}
                         enable_mpi_defaults: ${enable_mpi_defaults} 
                         enable_mpi_opa: ${enable_mpi_opa}
@@ -214,7 +192,12 @@
                         - { num: 3, c_name: "${cnode03}", c_ip: "${cnode03ip}", c_mac: "${cnode03mac}", c_bmc: "10.41.1.0"}
                         EOF
 
-                        cd ansible-playbook-for-ohpc
-                        ansible-playbook site.yml --extra-vars="@../ohpc_installation.yml" -i ../hosts
+                        if [ -d ${WORKSPACE}/ansible-playbook-for-ohpc ]; then
+                            rm -rf ${WORKSPACE}/ansible-playbook-for-ohpc
+                        fi
+                        git clone -b ${automation_branch} https://github.com/Linaro/ansible-playbook-for-ohpc.git ${WORKSPACE}/ansible-playbook-for-ohpc
 
+                        eval `ssh-agent`
+                        ssh-add
+                        ANSIBLE_CONFIG=${WORKSPACE}/ansible-playbook-for-ohpc/ansible.cfg ansible-playbook ${WORKSPACE}/ansible-playbook-for-ohpc/site.yml --extra-vars="@${WORKSPACE}/ohpc_installation.yml" -i ${WORKSPACE}/hosts
                         ssh-agent -k 
