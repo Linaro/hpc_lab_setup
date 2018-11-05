@@ -30,46 +30,33 @@
                                  - job-build
                                  - job-read
          parameters:
-                 - string:
+                 - choice:
                          name: machine_type
-                         default: ''
-                         description: 'The MrP name of the machine to provision'
-                 - string:
-                         name: machine_list
-                         default: ''
-                         description: 'The list of the MrP names of the machine_subarch to provision'
-                 - string:
+                         choices:
+                                 - d03
+                                 - d05
+                                 - qdc
+                         description: 'Micro-architecture of the machine to be provisioned'
+                 - choice:
                          name: job_type
+                         choices:
+                                 - bench
+                                 - ohpc
                          default: 'bench'
-                         description: 'The job type you will execute on the machine: ohpc, bench'
-                 - string:
+                         description: 'The job type to be executed on the machine'
+                 - choice:
                          name: os_type
-                         default: 'Debian'
-                         description: 'The os type the machine will be provisioned with'
-                 - string:
-                         name: kernel_desc
-                         default: ''
-                         description: 'The exact description in MrP of the kernel to be used'
-                 - string:
-                         name: initrd_desc
-                         default: ''
-                         description: 'The exact description in MrP of the initrd to be used'
-                 - string:
-                         name: preseed_name
-                         default: ''
-                         description: 'The exact name in MrP of the preseed to be used'
-                 - string:
-                         name: preseed_type
-                         default: 'preseed'
-                         description: 'The type of the preseed to be used (preseed or kickstart)'
-                 - string:
-                         name: kernel_opts
-                         default: ''
-                         description: 'The arguments to be passed to the kernel'
+                         choices:
+                                 - default
+                                 - debian
+                                 - centos
+                                 - centos-upstream
+                         default: 'default'
+                         description: 'The OS distribution. Default: Debian for benchmark, CentOS for openhpc'
                  - string:
                          name: client_branch
                          default: 'master'
-                         description: 'The branch of the mrp client to use'
+                         description: 'The branch of the MrP client to use'
                  - string:
                          name: automation_branch
                          default: 'master'
@@ -79,19 +66,53 @@
                         #!/bin/bash
                         set -ex
 
-                        # Defaults
-                        if [[ ${machine_list} == '' ]]; then
-                                machine_name="${machine_type}${job_type}"
-                        else
-                                machine_list="$( echo "$machine_list"| tr -d '[:space:]')"
-                                machine_name=${machine_list}
+                        # Chose default OS
+                        if [ "${os_type}" == "default" ]; then
+                          if [ "${job_type}" == "bench" ]; then
+                            os_type=debian
+                          elif [ "${job_type}" == "ohpc" ]; then
+                            os_type=centos
+                            if [ "${machine_type}" == "qdc" ]; then
+                                os_type=centos-upstream
+                            fi
+                          else
+                            echo "Unknown job type : ${job_type}"
+                            exit 1
+                          fi
                         fi
+
+                        # Chose known good kernel/initrd/cmdline
+                        if [ "${os_type}" == "debian" ]; then
+                          preseed_type="preseed"
+                          kernel_desc="Debian ERP 18.06"
+                          initrd_desc="Debian ERP 18.06"
+                          preseed_name="Debian"
+                          kernel_opts=
+                        elif [ "${os_type}" == "centos" ]; then
+                          preseed_type="kickstart"
+                          kernel_desc="CentOS ERP 18.06"
+                          initrd_desc="CentOS ERP 18.06"
+                          preseed_name="CentOS"
+                          kernel_opts="ip=dhcp text inst.stage2=http://10.40.0.13/releases.linaro.org/reference-platform/enterprise/18.06/centos-installer/ inst.repo=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                        elif [ "${os_type}" == "centos-upstream" ]; then
+                          preseed_type="kickstart"
+                          kernel_desc="CentOS 7.5"
+                          initrd_desc="CentOS 7.5"
+                          preseed_name="CentOS Upstream"
+                          kernel_opts="ip=dhcp text inst.stage2=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                        else
+                            echo "Unknown os_type : ${os_type}"
+                            exit 1
+                        fi
+
+                        # Defaults
+                        machine_name="${machine_type}${job_type}"
                         machine_arch=AArch64
                         machine_subarch=Grub
 
                         # Special cases
                         if [ "${machine_type}" == "d03" ]; then
-                            kernel_opts="${kernel_opts} earlycon console=ttyS0,115200"
+                            kernel_opts="${kernel_opts} modprobe.blacklist=hibmc_drm earlycon console=ttyS0,115200"
                         else
                             kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
                         fi
@@ -101,7 +122,7 @@
                         fi
 
                         # Build trigger file
-                        cat << EOF > mrp_provision
+                        cat << EOF > ${WORKSPACE}/mrp_provision
                         node="${machine_type}${job_type}"
                         machine_name=${machine_name}
                         machine_arch=${machine_arch}

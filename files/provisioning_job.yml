@@ -95,6 +95,7 @@
                          mkdir ${WORKSPACE}/${DIR_NAME}
 
                          IFS=',' read -ra mlist <<< "$machine_name"
+                         IFS=';' read -ra kopts_list <<< "$kernel_opts"
 
                          #Build hosts file
                          cat << EOF > ${WORKSPACE}/${DIR_NAME}/hosts
@@ -112,9 +113,8 @@
                          preseed_name: ${preseed_name}
                          arch: ${machine_arch}
                          subarch: ${machine_subarch}
-                         kernel_opts: ${kernel_opts}
                          machines:
-                         $(for i in "${mlist[@]}"; do echo "- $i"; done)
+                         $(for i in "${!mlist[@]}"; do echo -e "- name: ${mlist[$i]}\n  kernel_opts: ${kopts_list[$i]}"; done)
                          EOF
 
                          if [ -d "${WORKSPACE}/hpc_lab_setup" ]; then

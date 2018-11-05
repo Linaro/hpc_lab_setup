@@ -35,7 +35,6 @@
                          choices:
                                  - d05
                                  - qdc
-                         default: 'qdc'
                          description: 'The cluster of machines to be provisioned'
                  - string:
                          name: client_branch
@@ -49,51 +48,71 @@
                  - shell: |
                         #!/bin/bash
                         set -ex
+                        old_ifs=${IFS}
+                        IFS=""
 
                         if [ ${machine_type} == "qdc" ]; then
-                                machine_list="qdcohpc, qdc01, qdc02, qdc03"
+                                machine_subarch=GrubWithOptionEfiboot
+                                machine_name="qdcohpc,qdc01,qdc02,qdc03"
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS 7.5"
                                 initrd_desc="CentOS 7.5"
                                 preseed_name="CentOS Upstream"
-                                kernel_opts="ip=dhcp text inst.stage2=http://mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                                stagetwo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
+                                repo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
+                                qdc="earlycon console=ttyAMA0,115200"
+                                special=(${qdc} ${qdc} ${qdc} ${qdc})
                         elif [ ${machine_type} == "d05" ]; then
-                                machine_list="d05ohpc, d0301, d0302, d0303"
+                                machine_subarch=Grub
+                                machine_name="d05ohpc,d0301,d0302,d0303"
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS ERP 18.06"
                                 initrd_desc="CentOS ERP 18.06"
                                 preseed_name="CentOS"
-                                kernel_opts="ip=dhcp text inst.stage2=http://releases.linaro.org/reference-platform/enterprise/18.06/centos-installer/ inst.repo=http://mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                                stagetwo="http://10.40.0.13/releases.linaro.org/reference-platform/enterprise/18.06/centos-installer/"
+                                repo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
+                                d05="modprobe.blacklist=hibmc_drm earlycon console=ttyAMA0,115200"
+                                d03="modprobe.blacklist=hibmc_drm earlycon console=ttyS0,115200"
+                                special=(${d05} ${d03} ${d03} ${d03})
                         fi
 
-                        # Chose known good kernel/initrd/cmdline
-
-                        # Build trigger machine_provision job
-                        cat << EOF > machine_provision
-                        machine_list=${machine_list}
-                        os_type=${os_type}
-                        machine_type=${machine_type}
+                        # Defaults
+                        machine_arch=AArch64
                         job_type=ohpc
+
+                        kernel_opts=""
+                        for ((i = 0; i < ${#special[@]}; i++))
+                        do
+                                if [ -z "${kernel_opts}" ]; then
+                                        kernel_opts="ip=dhcp text inst.stage2=${stagetwo} inst.repo=${repo} inst.ks=file:/ks.cfg ${special[i]}"
+                                else
+                                        kernel_opts="${kernel_opts};ip=dhcp text inst.stage2=${stagetwo} inst.repo=${repo} inst.ks=file:/ks.cfg ${special[i]}"
+                                fi
+                        done
+
+                        IFS=${old_ifs}
+
+                        # Build trigger file
+                        cat << EOF > ${WORKSPACE}/mrp_provision
+                        node="${machine_type}${job_type}"
+                        machine_name=${machine_name}
+                        machine_arch=${machine_arch}
+                        machine_subarch=${machine_subarch}
+                        kernel_opts=${kernel_opts}
                         kernel_desc=${kernel_desc}
                         initrd_desc=${initrd_desc}
                         preseed_name=${preseed_name}
                         preseed_type=${preseed_type}
-                        kernel_opts=${kernel_opts}
-                        kernel_path=
-                        initrd_path=
-                        preseed_path=
+                        client_branch=${client_branch}
                         automation_branch=${automation_branch}
-                        clint_branch=${client_branch}
                         EOF
 
                  - conditional-step:
                          condition-kind: file-exists
-                         condition-filename: machine_provision
+                         condition-filename: mrp_provision
                          steps:
                                  - trigger-builds:
-                                         - project: 'machine_provision'
-                                           property-file: machine_provision
+                                         - project: 'provisioning_job'
+                                           property-file: mrp_provision
                                            current-parameters: true
-                                           node-label-name: "xecutor"
-                                           node-label: "xecutor"
                                            block: true

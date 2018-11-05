@@ -9,7 +9,6 @@
   with_items:
           - provisioning_job
           - machine_provision
-          - os_provision
           - benchmark_job
           - ohpc_install
           - ohpc_test_suite
@@ -29,7 +28,6 @@
   with_items:
           - provisioning_job
           - machine_provision
-          - os_provision
           - benchmark_job
           - ohpc_install
           - ohpc_test_suite

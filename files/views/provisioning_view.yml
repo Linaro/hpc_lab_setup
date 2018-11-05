@@ -6,7 +6,7 @@
         filter-executors: true
         filter-queue: true
         job-name:
-            - os_provision
+            - machine_provision
             - cluster_provision
         columns:
             - status
