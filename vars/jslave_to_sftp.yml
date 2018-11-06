@@ -1,6 +1,6 @@
 ---
 sftp_groups:
-- regex: ".*qdc.*"
+- regex: ".*qdf.*"
   group: qualcomm
 - regex: ".*d0.*"
   group: huawei

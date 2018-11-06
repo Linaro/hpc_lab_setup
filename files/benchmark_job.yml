@@ -34,7 +34,7 @@
                          allowed-slaves:
                                  - d03bench
                                  - d05bench
-                                 - qdcbench
+                                 - qdfbench
                                  - tx2bench
                          allowed-multiselect: true
                          ignore-offline-nodes: true
@@ -105,9 +105,9 @@
                             node_type=d05
                             machine_type=aarch64
                             ;;
-                        qdc*)
+                        qdf*)
                             vendor='qualcomm'
-                            node_type=qdc
+                            node_type=qdf
                             machine_type=aarch64
                             ;;
                         tx*)

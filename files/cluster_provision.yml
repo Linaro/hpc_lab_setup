@@ -34,7 +34,7 @@
                          name: machine_type
                          choices:
                                  - d05
-                                 - qdc
+                                 - qdf
                          description: 'The cluster of machines to be provisioned'
                  - string:
                          name: client_branch
@@ -51,17 +51,17 @@
                         old_ifs=${IFS}
                         IFS=""
 
-                        if [ ${machine_type} == "qdc" ]; then
+                        if [ ${machine_type} == "qdf" ]; then
                                 machine_subarch=GrubWithOptionEfiboot
-                                machine_name="qdcohpc,qdc01,qdc02,qdc03"
+                                machine_name="qdfohpc,qdf01,qdf02,qdf03"
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS 7.5"
                                 initrd_desc="CentOS 7.5"
                                 preseed_name="CentOS Upstream"
                                 stagetwo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
                                 repo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
-                                qdc="earlycon console=ttyAMA0,115200"
-                                special=(${qdc} ${qdc} ${qdc} ${qdc})
+                                qdf="earlycon console=ttyAMA0,115200"
+                                special=(${qdf} ${qdf} ${qdf} ${qdf})
                         elif [ ${machine_type} == "d05" ]; then
                                 machine_subarch=Grub
                                 machine_name="d05ohpc,d0301,d0302,d0303"

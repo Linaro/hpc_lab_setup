@@ -35,7 +35,7 @@
                          choices:
                                  - d03
                                  - d05
-                                 - qdc
+                                 - qdf
                          description: 'Micro-architecture of the machine to be provisioned'
                  - choice:
                          name: job_type
@@ -72,7 +72,7 @@
                             os_type=debian
                           elif [ "${job_type}" == "ohpc" ]; then
                             os_type=centos
-                            if [ "${machine_type}" == "qdc" ]; then
+                            if [ "${machine_type}" == "qdf" ]; then
                                 os_type=centos-upstream
                             fi
                           else
@@ -117,7 +117,7 @@
                             kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
                         fi
 
-                        if [ "${machine_type}" == "qdc" ]; then
+                        if [ "${machine_type}" == "qdf" ]; then
                             machine_subarch=GrubWithOptionEfiboot
                         fi
 

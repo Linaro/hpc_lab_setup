@@ -6,6 +6,6 @@ jslave_list:
 - "d05bench"
 - "tx2ohpc"
 - "tx2bench"
-- "qdcohpc"
-- "qdcbench"
+- "qdfohpc"
+- "qdfbench"
 - "xecutor"
