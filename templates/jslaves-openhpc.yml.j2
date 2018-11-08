@@ -7,5 +7,5 @@ jslaves_openhpc:
       cgroup: {{ r.group }}
 {% endif %}
 {% endfor %}
-      ssh_key: {{ master_private_key['content'] | b64decode }}
+      ssh_key: {{ master_public_key['content'] | b64decode }}
 {% endfor %}

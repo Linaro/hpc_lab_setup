@@ -22,15 +22,15 @@
       remote_src: yes
   with_list: "{{ jslave_list }}"
 
-- name: Slurping up the master's private key into a variable
+- name: Slurping up the master's public key into a variable
   slurp:
-    src: "{{ key_path }}"
-  register: master_private_key
+    src: "{{ key_path }}.pub"
+  register: master_public_key
 
 - name: Putting the keys into the template for the fileserver
   template:
     src: "templates/{{ item }}.j2"
-    dest: "vars/{{ item }}"
+    dest: "vars/{{ item }}.secret"
   with_items:
         - jslaves-benchmark.yml
         - jslaves-openhpc.yml
