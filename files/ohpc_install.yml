@@ -109,6 +109,7 @@
                                 # Enable components options
                                 enable_beegfs_client=False
                                 enable_mpi_defaults=True
+                                ohpc_lmod_mpi_default="lmod-defaults-gnu8-openmpi3-ohpc"
                                 enable_mpi_opa=False
                                 enable_clustershell=True
                                 enable_ipmisol=False
@@ -161,7 +162,8 @@
                         cnode_eth_internal: ${eth_provision}
                         force_service: ${force_service}
                         enable_beegfs_client: ${enable_beegfs_client}
-                        enable_mpi_defaults: ${enable_mpi_defaults} 
+                        enable_mpi_defaults: ${enable_mpi_defaults}
+                        ohpc_lmod_mpi_default: ${ohpc_lmod_mpi_default}
                         enable_mpi_opa: ${enable_mpi_opa}
                         enable_clustershell: ${enable_clustershell}
                         enable_ipmisol: ${enable_ipmisol}
