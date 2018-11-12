@@ -232,7 +232,7 @@
                             status: enable
 
                         mpi_families: openmpi3
-                        compiler_families: gnu7
+                        compiler_families: gnu8
                         EOF
 
                         if [ -d ${WORKSPACE}/ansible-playbook-for-ohpc ]; then
