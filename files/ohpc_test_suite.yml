@@ -140,6 +140,8 @@
                             status: enable
                           - name: gsl
                             status: enable
+                          - name: geopm
+                            status: disable
                           - name: hdf5
                             status: disable
                           - name: hwloc
