@@ -52,6 +52,7 @@
                          choices:
                                  - lulesh
                                  - himeno
+                                 - openblas
                          default: 'lulesh'
                          description: 'The benchmark to run on the machine'
                  - choice:
