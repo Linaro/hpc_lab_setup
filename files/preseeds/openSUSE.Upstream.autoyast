@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <partitioning  config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <software>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>console</pattern>
+    </patterns>
+    <packages config:type="list">
+      <package>perf</package>
+      <package>zypper-aptitude</package>
+    </packages>
+  </software>
+  <users config:type="list">
+    <user>
+      <username>root</username>
+      <uid>0</uid>
+      <gid>0</gid>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>Root User</fullname>
+      <authorized_keys config:type="list">
+        {% for key in ssh_keys %}
+          {% set keys = key.split("\\n") %}
+          {% for k in keys %}
+            <listentry>{{k}}</listentry>
+          {% endfor %}
+	{% endfor %}
+      </authorized_keys>
+    </user>
+  </users>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <!-- Enable SSH -->
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <scripts>
+    <init-scripts config:type="list">
+      <!-- Add update repo -->
+      <script>
+      <filename>add_update_repo.sh</filename>
+      <source>
+<![CDATA[
+echo "Add update repo"
+source /etc/os-release
+zypper ar -f http://download.opensuse.org/ports/update/leap/$VERSION_ID/oss/ "$VERSION_ID update"
+zypper ref
+]]>
+      </source>
+      </script>
+    </init-scripts>
+  </scripts>
+</profile>

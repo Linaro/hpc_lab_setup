@@ -52,6 +52,7 @@
                                  - debian
                                  - centos
                                  - centos-upstream
+                                 - opensuse
                          default: 'default'
                          description: 'The OS distribution. Default: Debian for benchmark, CentOS for openhpc'
                  - string:
@@ -98,6 +99,13 @@
                           initrd_desc="CentOS 7.5"
                           preseed_name="CentOS.Upstream"
                           kernel_opts="ip=dhcp text inst.stage2=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                        elif [ "${os_type}" == "opensuse" ]; then
+                          preseed_type="autoyast"
+                          kernel_desc="openSUSE Leap 15.1"
+                          initrd_desc="openSUSE Leap 15.1"
+                          preseed_name="openSUSE.Upstream"
+                          # 'acpi=force' is needed for D05 with current firmware
+                          kernel_opts="netsetup=dhcp acpi=force install=http://download.opensuse.org/ports/aarch64/distribution/leap/15.1/repo/oss/"
                         else
                             echo "Unknown os_type : ${os_type}"
                             exit 1

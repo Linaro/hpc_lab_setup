@@ -12,3 +12,7 @@ list_preseeds:
       description: "CentOS ERP"
       type: "kickstart"
       path: "./files/preseeds/Centos.ERP.kickstart"
+    - name: "openSUSE.Upstream"
+      description: "openSUSE Leap"
+      type: "autoyast"
+      path: "./files/preseeds/openSUSE.Upstream.autoyast"
