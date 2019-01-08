@@ -34,6 +34,7 @@
                          allowed-slaves:
                                  - d05ohpc
                                  - qdfohpc
+                                 - tx2ohpc
                          allowed-multiselect: true
                          ignore-offline-nodes: true
                          description: 'Node on which to execute this job'
@@ -81,6 +82,12 @@
                                 cnode03='d0303'
                                 num_compute='3' 
                                 compute_regex='d030[1-3]'
+                        elif [ ${node} == 'tx2ohpc' ]; then
+                                master_name='tx2ohpc'
+                                cnode01='tx201'
+                                cnode02='tx202'
+                                num_compute='2'
+                                compute_regex='tx20[1-2]'
                         fi
 
                         if [ -d ${WORKSPACE}/mr-provisioner-client ]; then

@@ -34,6 +34,7 @@
                          allowed-slaves:
                                  - d05ohpc
                                  - qdfohpc
+                                 - tx2ohpc
                          allowed-multiselect: true
                          ignore-offline-nodes: true
                          description: 'Node on which to execute this job'
@@ -59,45 +60,11 @@
                         arch='aarch64'
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
+
                         force_service=True
-
-                        if [ ${node} == 'qdfohpc' ]; then
-                                master_name='qdfohpc'
-                                cnode01='qdf01'
-                                cnode02='qdf02'
-                                cnode03='qdf03'
-                                master_eth_internal='eth0'
-                                eth_provision='eth0'
-                                num_compute='3'
-                                compute_prefix='qdf0'
-                                compute_regex='qdf0[1-3]'
-                                kargs=''
-                                additional_modules='qcom_emac'
-                        elif [ ${node} == 'd05ohpc' ]; then
-                                master_name='d05ohpc'
-                                cnode01='d0301'
-                                cnode02='d0302'
-                                cnode03='d0303'
-                                master_eth_internal='enahisic2i1'
-                                eth_provision='enahisic2i1'
-                                num_compute='3' 
-                                compute_prefix='d030'
-                                compute_regex='d030[1-3]'
-                                kargs=''
-                        fi
-
-                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
-                            rm -rf ${WORKSPACE}/mr-provisioner-client
-                        fi
-                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
-
-                        master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${master_name} --interface eth1 )
-                        cnode01ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode01} --interface eth1 )
-                        cnode01mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine ${cnode01} --interface eth1 )
-                        cnode02ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode02} --interface eth1 )
-                        cnode02mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine ${cnode02} --interface eth1 )
-                        cnode03ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode03} --interface eth1 )
-                        cnode03mac=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine ${cnode03} --interface eth1 )
+                        sms_ipoib_internal='ib0'
+                        cnodes_ipoib_internal='ib0'
+                        ipoib_netmask="255.255.255.0"
 
                         if [ ${method} == 'stateful' ]; then
                                 internal_network='10.40.0.0'
@@ -135,13 +102,67 @@
                                 exit 1
                         fi
 
+                        if [ ${node} == 'qdfohpc' ]; then
+                                master_ipoib_internal='ib0'
+                                cnodes_ipoib_internal='ib0'
+                                master_name='qdfohpc'
+                                cnodes=('qdf01' 'qdf02' 'qdf03')
+                                master_eth_internal='eth0'
+                                eth_provision='eth0'
+                                num_compute='3'
+                                compute_prefix='qdf0'
+                                compute_regex='qdf0[1-3]'
+                                kargs=''
+                                additional_modules='qcom_emac'
+                        elif [ ${node} == 'd05ohpc' ]; then
+                                master_ipoib_internal='ib0'
+                                cnodes_ipoib_internal='ib0'
+                                master_name='d05ohpc'
+                                cnodes=('d0501' 'd0502' 'd0503')
+                                master_eth_internal='enahisic2i1'
+                                eth_provision='enahisic2i1'
+                                num_compute='3' 
+                                compute_prefix='d030'
+                                compute_regex='d030[1-3]'
+                                kargs=' modprobe.blacklist=hibmc_drm'
+                        elif [ ${node} == 'tx2ohpc' ]; then
+                                master_ipoib_internal='ib0'
+                                cnodes_ipoib_internal='ib0'
+                                master_name='tx2ohpc'
+                                cnodes=('tx201' 'tx202')
+                                master_eth_internal='enp0s0f1'
+                                eth_provision='enp0s0f1'
+                                num_compute='2'
+                                compute_prefix='tx20'
+                                compute_regex='tx20[1-2]'
+                                kargs=' console=tty0'
+                        fi
+
+                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
+                            rm -rf ${WORKSPACE}/mr-provisioner-client
+                        fi
+                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+
+                        master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${master_name} --interface eth1 )
+                        IFS="." read -ra HOST <<< "${master_ip}"
+                        ipoib_master="192.168.100.${HOST[-1]}"
+
+                        for i in "${cnodes[@]}"; 
+                        do 
+                                declare ip_${i}=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${i} --interface eth1 )
+                                declare mac_${i}=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getmac --machine ${i} --interface eth1 )
+                                # Get the XXX in 10.40.24.XXX to make 192.168.100.XXX
+                                var=ip_${i}
+                                IFS="." read -ra HOST <<< "${!var}"
+                                declare ipoib_${i}="192.168.100.${HOST[-1]}"
+                        done
+
+
                         cat << EOF > ${WORKSPACE}/hosts
                         [sms]
                         ${master_ip}
                         [cnodes]
-                        ${cnode01ip}
-                        ${cnode02ip}
-                        ${cnode03ip}
+                        $(for i in "${cnodes[@]}"; do var=ip_${i}; echo -e "${!var}"; done)
                         [ionodes]
                         ${master_ip}
                         [devnodes]
@@ -189,9 +210,13 @@
                         compute_regex: ${compute_regex}
                         compute_prefix: ${compute_prefix}
                         compute_nodes:
-                        - { num: 1, c_name: "${cnode01}", c_ip: "${cnode01ip}", c_mac: "${cnode01mac}", c_bmc: "10.41.1.0"}
-                        - { num: 2, c_name: "${cnode02}", c_ip: "${cnode02ip}", c_mac: "${cnode02mac}", c_bmc: "10.41.1.0"}
-                        - { num: 3, c_name: "${cnode03}", c_ip: "${cnode03ip}", c_mac: "${cnode03mac}", c_bmc: "10.41.1.0"}
+                        $(p=0; for i in "${cnodes[@]}"; do ip=ip_${i}; mac=mac_${i}; let "p++"; echo -e "- { num: '${p}', c_name: '${i}', c_ip: '${!ip}', c_mac: '${!mac}', c_bmc: '10.41.1.0' }"; done)
+                        sms_ipoib_internal: ${master_ipoib_internal}
+                        cnodes_ipoib_internal: ${cnodes_ipoib_internal}
+                        sms_ipoib: ${ipoib_master}
+                        ipoib_netmask: ${ipoib_netmask}
+                        compute_ipoib:
+                        $(p=0; for i in "${cnodes[@]}"; do ip=ip_${i}; ipoib=ipoib_${i}; let "p++"; echo -e "- { num: '${p}', c_hostname: '${!ip}', c_ipoib: '${!ipoib}' }"; done)
                         EOF
 
                         if [ -d ${WORKSPACE}/ansible-playbook-for-ohpc ]; then

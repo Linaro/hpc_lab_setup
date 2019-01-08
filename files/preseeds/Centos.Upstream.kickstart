@@ -25,10 +25,13 @@ network --hostname={{hostname}}
 services --enabled="chronyd"
 
 # Install to sda.
-bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
 ignoredisk --only-use=sda
-autopart --type=plain
 clearpart --all --initlabel --drives=sda
+
+part /boot/efi --fstype=efi --size=250
+part /boot --fstype=ext4 --size=512
+part / --fstype=ext4 --grow --size=10240
+bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
 
 # Reboot after installation
 reboot
@@ -61,3 +64,4 @@ chmod 0600 /root/.ssh/authorized_keys
 # Add apt-cacher-ng to conf
 #echo "proxy=http://10.40.0.13:3142" >> /etc/yum.conf
 %end
+

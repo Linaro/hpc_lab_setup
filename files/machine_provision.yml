@@ -36,6 +36,7 @@
                                  - d03
                                  - d05
                                  - qdf
+                                 - tx2
                          description: 'Micro-architecture of the machine to be provisioned'
                  - choice:
                          name: job_type
@@ -71,10 +72,7 @@
                           if [ "${job_type}" == "bench" ]; then
                             os_type=debian
                           elif [ "${job_type}" == "ohpc" ]; then
-                            os_type=centos
-                            if [ "${machine_type}" == "qdf" ]; then
-                                os_type=centos-upstream
-                            fi
+                            os_type=centos-upstream
                           else
                             echo "Unknown job type : ${job_type}"
                             exit 1
@@ -85,20 +83,20 @@
                         if [ "${os_type}" == "debian" ]; then
                           preseed_type="preseed"
                           kernel_desc="Debian ERP 18.06"
-                          initrd_desc="Debian ERP 18.06"
+                          initrd_desc="Debian ERP 18.06 w/QED&BNX2X"
                           preseed_name="Debian"
                           kernel_opts=
                         elif [ "${os_type}" == "centos" ]; then
                           preseed_type="kickstart"
                           kernel_desc="CentOS ERP 18.06"
                           initrd_desc="CentOS ERP 18.06"
-                          preseed_name="CentOS"
+                          preseed_name="CentOS.ERP"
                           kernel_opts="ip=dhcp text inst.stage2=http://10.40.0.13/releases.linaro.org/reference-platform/enterprise/18.06/centos-installer/ inst.repo=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
                         elif [ "${os_type}" == "centos-upstream" ]; then
                           preseed_type="kickstart"
                           kernel_desc="CentOS 7.5"
                           initrd_desc="CentOS 7.5"
-                          preseed_name="CentOS Upstream"
+                          preseed_name="CentOS.Upstream"
                           kernel_opts="ip=dhcp text inst.stage2=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
                         else
                             echo "Unknown os_type : ${os_type}"
@@ -108,17 +106,15 @@
                         # Defaults
                         machine_name="${machine_type}${job_type}"
                         machine_arch=AArch64
-                        machine_subarch=Grub
+                        machine_subarch=GrubWithOptionEfiboot
 
                         # Special cases
                         if [ "${machine_type}" == "d03" ]; then
                             kernel_opts="${kernel_opts} modprobe.blacklist=hibmc_drm earlycon console=ttyS0,115200"
+                        elif [ "${machine_type}" == "tx2" ]; then
+                            kernel_opts="${kernel_opts} earlycon console=tty0"
                         else
                             kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
-                        fi
-
-                        if [ "${machine_type}" == "qdf" ]; then
-                            machine_subarch=GrubWithOptionEfiboot
                         fi
 
                         # Build trigger file

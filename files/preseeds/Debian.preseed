@@ -28,7 +28,7 @@ d-i netcfg/get_domain string
 # and adjust the following line.
 d-i netcfg/hostname string "{{hostname}}"
 
-### Network console
+### Network console : TO INVESTIGATE
 # Use the following settings if you wish to make use of the network-console
 # component for remote installation over SSH. This only makes sense if you
 # intend to perform the remainder of the installation manually.
@@ -54,11 +54,35 @@ d-i clock-setup/ntp boolean true
 
 # Partitioning
 d-i partman-auto/disk string /dev/sda
-#d-i partman-auto/method string regular
+d-i partman-basicfilesystems/no_swap boolean false
+d-i partman-auto/choose_recipe select myroot
+d-i partman-auto/expert_recipe string \
+   myroot :: \
+    228 8000 256 ext2             \
+      $primary{ }                     \
+      $bootable{ }                \
+      method{ format }            \
+      format{ }                       \
+      use_filesystem{ }               \
+      filesystem{ ext2 }              \
+      mountpoint{ /boot } .       \
+    538 538 1075 free	\
+    $iflabel{ gpt }	\
+    $reusemethod{ }	\
+    method{ efi }	\
+    format{ } .	\
+    1000 50 -1 ext4 \
+     $primary{ } \
+     $bootable{ } \
+     method{ format } \
+     format{ } \
+     device{ /dev/sda } \
+     use_filesystem{ } \
+     filesystem{ ext4 } \
+     mountpoint{ / } .
 d-i partman-auto/method string regular
 d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-md/device_remove_md boolean true
-d-i partman-auto/choose_recipe select atomic
 d-i partman/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
@@ -87,3 +111,4 @@ chmod 600 /target/root/.ssh/authorized_keys ; \
 in-target apt remove -y linux-image-* ; \
 in-target apt install -y linux-image-reference-arm64 ; \
 in-target sync;
+

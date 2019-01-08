@@ -35,6 +35,7 @@
                          choices:
                                  - d05
                                  - qdf
+                                 - tx2
                          description: 'The cluster of machines to be provisioned'
                  - string:
                          name: client_branch
@@ -57,23 +58,34 @@
                                 preseed_type="kickstart"
                                 kernel_desc="CentOS 7.5"
                                 initrd_desc="CentOS 7.5"
-                                preseed_name="CentOS Upstream"
+                                preseed_name="CentOS.Upstream"
                                 stagetwo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
                                 repo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
                                 qdf="earlycon console=ttyAMA0,115200"
                                 special=(${qdf} ${qdf} ${qdf} ${qdf})
-                        elif [ ${machine_type} == "d05" ]; then
-                                machine_subarch=Grub
-                                machine_name="d05ohpc,d0301,d0302,d0303"
+                        elif [ ${machine_type} == "tx2" ]; then
+                                machine_subarch=GrubWithOptionEfiboot
+                                machine_name="tx2ohpc,tx201,tx202"
                                 preseed_type="kickstart"
-                                kernel_desc="CentOS ERP 18.06"
-                                initrd_desc="CentOS ERP 18.06"
-                                preseed_name="CentOS"
+                                kernel_desc="CentOS 7.5"
+                                initrd_desc="CentOS 7.5"
+                                preseed_name="CentOS.Upstream"
+                                stagetwo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
+                                repo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
+                                tx2="earlycon console=tty0"
+                                special=(${tx2} ${tx2} ${tx2})
+                        elif [ ${machine_type} == "d05" ]; then
+                                machine_subarch=GrubWithOptionEfiboot
+                                machine_name="d05ohpc,d0501,d0502,d0503"
+                                preseed_type="kickstart"
+                                kernel_desc="CentOS 7.5"
+                                initrd_desc="CentOS 7.5"
+                                preseed_name="CentOS.Upstream"
                                 stagetwo="http://10.40.0.13/releases.linaro.org/reference-platform/enterprise/18.06/centos-installer/"
                                 repo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
                                 d05="modprobe.blacklist=hibmc_drm earlycon console=ttyAMA0,115200"
                                 d03="modprobe.blacklist=hibmc_drm earlycon console=ttyS0,115200"
-                                special=(${d05} ${d03} ${d03} ${d03})
+                                special=(${d05} ${d05} ${d05} ${d05})
                         fi
 
                         # Defaults
