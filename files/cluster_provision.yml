@@ -81,10 +81,9 @@
                                 kernel_desc="CentOS 7.5"
                                 initrd_desc="CentOS 7.5"
                                 preseed_name="CentOS.Upstream"
-                                stagetwo="http://10.40.0.13/releases.linaro.org/reference-platform/enterprise/18.06/centos-installer/"
+                                stagetwo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
                                 repo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
                                 d05="modprobe.blacklist=hibmc_drm earlycon console=ttyAMA0,115200"
-                                d03="modprobe.blacklist=hibmc_drm earlycon console=ttyS0,115200"
                                 special=(${d05} ${d05} ${d05} ${d05})
                         fi
 
