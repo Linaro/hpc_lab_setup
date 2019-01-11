@@ -70,22 +70,17 @@
 
                         if [ ${node} == 'qdfohpc' ]; then
                                 master_name='qdfohpc'
-                                cnode01='qdf01'
-                                cnode02='qdf02'
-                                cnode03='qdf03'
+                                cnodes=('qdf01' 'qdf02' 'qdf03')
                                 num_compute='3'
                                 compute_regex='qdf0[1-3]'
                         elif [ ${node} == 'd05ohpc' ]; then
                                 master_name='d05ohpc'
-                                cnode01='d0301'
-                                cnode02='d0302'
-                                cnode03='d0303'
+                                cnodes=('d0501' 'd0502' 'd0503')
                                 num_compute='3' 
                                 compute_regex='d030[1-3]'
                         elif [ ${node} == 'tx2ohpc' ]; then
                                 master_name='tx2ohpc'
-                                cnode01='tx201'
-                                cnode02='tx202'
+                                cnodes=('tx201' 'tx202')
                                 num_compute='2'
                                 compute_regex='tx20[1-2]'
                         fi
@@ -95,11 +90,13 @@
                         fi
                         git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
 
-                        master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${master_name} --interface eth1)
-                        cnode01ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode01} --interface eth1)
-                        cnode02ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode02} --interface eth1)
-                        cnode03ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${cnode03} --interface eth1)
+                        master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${master_name} --interface eth1 )
 
+                        for i in "${cnodes[@]}"; 
+                        do 
+                                declare ip_${i}=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${i} --interface eth1 )
+                        done
+                        
                         if [ ${method} == 'stateful' ]; then
                                 enable_warewulf=False
                         elif [ ${method} == 'stateless' ]; then
@@ -115,9 +112,7 @@
                         [sms]
                         ${master_ip}
                         [cnodes]
-                        ${cnode01ip}
-                        ${cnode02ip}
-                        ${cnode03ip}
+                        $(for i in "${cnodes[@]}"; do var=ip_${i}; echo -e "${!var}"; done)
                         [ionodes]
                         ${master_ip}
                         [devnodes]
