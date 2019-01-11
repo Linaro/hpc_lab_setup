@@ -122,8 +122,8 @@
                                 master_eth_internal='enahisic2i1'
                                 eth_provision='enahisic2i1'
                                 num_compute='3' 
-                                compute_prefix='d030'
-                                compute_regex='d030[1-3]'
+                                compute_prefix='d050'
+                                compute_regex='d050[1-3]'
                                 kargs=' modprobe.blacklist=hibmc_drm'
                         elif [ ${node} == 'tx2ohpc' ]; then
                                 master_ipoib_internal='ib0'
