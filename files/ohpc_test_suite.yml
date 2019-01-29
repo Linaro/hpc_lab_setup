@@ -138,6 +138,8 @@
                             status: enable
                           - name: compilers
                             status: enable
+                          - name: extrae
+                            status: disable
                           - name: fftw
                             status: enable
                           - name: gsl
