@@ -1,15 +1,32 @@
 ---
-- hosts: target
+- hosts: nodes
   tasks:
           - name: Install IB support, test deps and parser deps
             yum:
                     name: "{{ item }}"
                     state: present
             with_items:
+                    - wget
                     - rsync
                     - perftest
                     - numactl
 
+          - name: Check if mpitests is installed
+            yum:
+                    name: mpitests-openmpi3
+                    state: present
+            register: mpitests_installed
+            ignore_errors: yes
+            when: do_mpitest
+
+          - name: Install mpitests
+            shell: "wget {{ mpitests_rpm_url }} ; rpm -i --nodeps {{ mpitests_rpm }}"
+            when: 
+                - do_mpitest == true
+                - mpitests_installed.rc != 0
+
+- hosts: target
+  tasks:
           - name: Get the perftest script to the target
             template:
                     src: ./templates/perftest.sh.j2

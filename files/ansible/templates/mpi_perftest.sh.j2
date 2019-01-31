@@ -6,6 +6,6 @@ OPENMPI={{ openmpi_lib_path | default("/usr/lib64/openmpi3") }}
 FLAGS="--allow-run-as-root -np 2"
 MCA="-mca btl_openib_if_include mlx5_{{ host_ib_devnb }} -mca plm_rsh_agent "
 SSH="ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-$OPENMPI/bin/mpirun $FLAGS -host $SRC,$DEST $MCA "$SSH" $OPENMPI/bin/mpitests-osu_bw 2>&1 |tee log-mpibw-$TAG.txt
-$OPENMPI/bin/mpirun $FLAGS -host $SRC,$DEST $MCA "$SSH" $OPENMPI/bin/mpitests-osu_bibw 2>&1 |tee log-mpibibw-$TAG.txt
-$OPENMPI/bin/mpirun $FLAGS -host $SRC,$DEST $MCA "$SSH" $OPENMPI/bin/mpitests-osu_latency 2>&1 |tee log-mpilat-$TAG.txt
+mpirun $FLAGS -host $SRC,$DEST $MCA "$SSH" $OPENMPI/bin/mpitests-osu_bw 2>&1 |tee log-mpibw-$TAG.txt
+mpirun $FLAGS -host $SRC,$DEST $MCA "$SSH" $OPENMPI/bin/mpitests-osu_bibw 2>&1 |tee log-mpibibw-$TAG.txt
+mpirun $FLAGS -host $SRC,$DEST $MCA "$SSH" $OPENMPI/bin/mpitests-osu_latency 2>&1 |tee log-mpilat-$TAG.txt

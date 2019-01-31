@@ -33,7 +33,7 @@
                          name: cluster
                          allowed-slaves:
                                  - d05ohpc
-                                 - qdcohpc
+                                 - qdfohpc
                          allowed-multiselect: False
                          description: 'Which cluster to use'
                  - string:
@@ -51,13 +51,29 @@
 
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
+                        mpitests_rpm_url="http://mirrors.coreix.net/centos-altarch/7/os/aarch64/Packages/mpitests-openmpi3-5.4.2-1.el7.aarch64.rpm"
+                        mpitests_rpm="mpitests-openmpi3-5.4.2-1.el7.aarch64.rpm"
+
+                        # We'll be using the same port number for all machines
+                        host_ib_devnb='1'
+                        remote_ib_devnb='1'
+
 
                         if [ ${cluster} == 'd05ohpc' ]; then
                                 host_machine='d05ohpc'
                                 remote_machine='d0301'
-                        elif [ ${cluster} == 'qdcohpc' ]; then
-                                host_machine='qdcohpc'
-                                remote_machine='qdc01'
+                                host_ib_devnb='0'
+                                remote_ib_devnb='0'
+                        elif [ ${cluster} == 'x86ohpc' ]; then
+                                host_machine='x86ohpc'
+                                remote_machine='x8601'
+                                mpitests_rpm_url="http://mirrors.coreix.net/centos/7/os/x86_64/Packages/mpitests-openmpi3-5.4.2-1.el7.x86_64.rpm"
+                                mpitests_rpm="mpitests-openmpi3-5.4.2-1.el7.x86_64.rpm"
+                                host_ib_devnb='0'
+                                remote_ib_devnb='0'
+                        elif [ ${cluster} == 'qdfohpc' ]; then
+                                host_machine='qdfohpc'
+                                remote_machine='qdf01'
                         fi
 
                         if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
@@ -74,14 +90,13 @@
                         IFS="." read -ra HOST <<< "$host_machine_ip"
                         host_ib_ip="192.168.100.${HOST[-1]}"
 
-                        # We'll be using the same port number for all machines
-                        host_ib_devnb='1'
-                        remote_ib_devnb='1'
-
                         cat << EOF > ${WORKSPACE}/hosts
                         localhost-py3 ansible_host=localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python3
                         [target]
                         ${host_machine_ip}
+                        [nodes]
+                        ${host_machine_ip}
+                        ${remote_machine_ip}
                         EOF
 
                         cat << EOF > ${WORKSPACE}/ib_perftest_args.yml
@@ -93,10 +108,12 @@
                         results_tag: ${host_machine}-${remote_machine}-${BUILD_NUMBER}
                         do_perftest: True
                         do_mpitest: True
+                        mpitests_rpm_url: ${mpitests_rpm_url}
+                        mpitests_rpm: ${mpitests_rpm}
                         EOF
 
                         if [ -d ${WORKSPACE}/results ]; then
-                                rm -rf ${WORKSPACE}/results
+                            rm -rf ${WORKSPACE}/results
                         fi
                         mkdir ${WORKSPACE}/results
 
@@ -107,7 +124,7 @@
 
                         eval `ssh-agent`
                         ssh-add
-                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v -u root "${WORKSPACE}/hpc_lab_setup/files/ansible/ib_perftest.yml" -i "${WORKSPACE}/hosts"  --extra-vars="@${WORKSPACE}/ib_perftest_args.yml" --extra-vars="@${WORKSPACE}/hpc_lab_setup/files/ibperftest_thresholds.yml"
+                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v -u root "${WORKSPACE}/hpc_lab_setup/files/ansible/ib_perftest.yml" -i "${WORKSPACE}/hosts" --extra-vars="@${WORKSPACE}/ib_perftest_args.yml" --extra-vars="@${WORKSPACE}/hpc_lab_setup/files/ibperftest_thresholds.yml"
                         ssh-agent -k 
 
          publishers:
