@@ -255,5 +255,5 @@
 
                         eval `ssh-agent`
                         ssh-add
-                        ANSIBLE_CONFIG=${WORKSPACE}/ansible-playbook-for-ohpc/ansible.cfg ansible-playbook ${WORKSPACE}/ansible-playbook-for-ohpc/site.yml --extra-vars="@${WORKSPACE}/ohpc_installation.yml" -i ${WORKSPACE}/hosts
+                        ANSIBLE_CONFIG=${WORKSPACE}/ansible-playbook-for-ohpc/ansible.cfg ansible-playbook ${WORKSPACE}/ansible-playbook-for-ohpc/site.yml --extra-vars="@${WORKSPACE}/ohpc_installation.yml" -i ${WORKSPACE}/hosts -u root
                         ssh-agent -k 
