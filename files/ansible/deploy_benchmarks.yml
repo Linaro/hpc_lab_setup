@@ -3,9 +3,8 @@
   tasks:
         - name: Install dependencies on any Linux system
           package:
-            name: "{{ item }}"
             state: present
-          with_items:
+            name: 
               - python3
               - python3-pip
               - git
@@ -25,6 +24,32 @@
         - name: IF THIS FAILS PLEASE INSTALL PERF MANUALLY
           shell: "perf --version"
           when: call_perf_test.failed == True
+
+        - name: Install the testing repository on Debian
+          apt_repository:
+            repo: deb http://ftp.us.debian.org/debian testing main contrib non-free
+            state: present
+
+        - name: Set it as low priority
+          lineinfile:
+            path: /etc/apt/preferences
+            insertafter: EOF
+            create: yes
+            line: "{{ item }}"
+          with_items:
+                  - "Package: *"
+                  - "Pin: release a=testing"
+                  - "Pin-Priority: 100"
+                  - " "
+
+        - name: Install GCC8 and Clang7
+          apt:
+            name:
+              - g++-8
+              - clang-7
+            state: latest
+            default_release: testing
+            update_cache: yes
 
         - name: Wipe harness directory
           file:
