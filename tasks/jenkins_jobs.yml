@@ -13,6 +13,7 @@
           - ohpc_install
           - ohpc_test_suite
           - cluster_provision
+          - deploy_mtt
 
 - name: Copy yaml view definition(s)
   copy:
@@ -35,3 +36,4 @@
           - benchmark_view
           - ohpc_view
           - provisioning_view
+          - deploy_mtt

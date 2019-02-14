@@ -1,0 +1,97 @@
+- hosts: all
+  tasks:
+
+  - name: Install pip on master
+    yum:
+            name:
+              - python-devel
+              - python-pip
+              - flex
+              - postgresql-devel
+            state: latest
+    when:
+      - inventory_hostname in groups['sms']
+
+  - name: Add user test to master
+    user:
+      name: test
+      comment: Test User for Hello World MPI test
+      state: present
+    when:
+      - inventory_hostname in groups['sms']
+
+  - name: Propagate this to the computes in stateful
+    user:
+      name: test
+      comment: Test User for Hello World MPI test
+      state: present
+    when:
+      - inventory_hostname in groups['cnodes']
+      - enable_warewulf == false
+
+  - name: Propagate this to the computes in stateless
+    shell: wwsh file resync passwd shadow group
+    when:
+      - inventory_hostname in groups['sms']
+      - enable_warewulf == True
+
+  - name: Clone MTT repository
+    git:
+            repo: 'https://github.com/open-mpi/mtt.git'
+            dest: "{{ MTT_HOME }}" 
+            force: yes
+    when:
+      - inventory_hostname in groups['sms']
+
+  - name: Install python dependencies
+    shell: "pip install --upgrade pip && pip install -r {{ MTT_HOME }}/pyenv.txt"
+    when:
+      - inventory_hostname in groups['sms']
+
+  - name: Put in the Test Plan templates
+    template:
+            src: "templates/{{ item }}.ini.j2"
+            dest: "/home/test/mtt/samples/python/{{ item }}.ini"
+    with_items:
+            - "{{ test_plans }}"
+    when:
+      - inventory_hostname in groups['sms']
+        
+  - name: Create directory because MTT
+    file:
+            path: "/opt/mtt/samples/python/"
+            state: directory
+    when:
+      - inventory_hostname in groups['sms']
+
+  - name: Execute Hello World MTT test
+    shell: "{{ MTT_HOME }}/pyclient/pymtt.py {{ MTT_HOME }}/samples/python/{{ item }}.ini --description {{ item }} --scratch-dir {{ MTT_HOME }}"
+    environment:
+            MTT_HOME: "{{ MTT_HOME }}"
+    with_items:
+            - "{{ test_plans }}"
+    when:
+      - inventory_hostname in groups['sms']
+
+  - name: Find the JUnit results
+    find:
+            paths: "{{ MTT_HOME }}"
+            patterns: "{{ item }}.xml"
+    register: junit_results_path
+    failed_when: junit_results_path.matched == 0
+    with_items:
+            - "{{ test_plans }}"
+    when:
+      - inventory_hostname in groups['sms']
+
+  - debug: var=junit_results_path
+
+  - name: Fetch the results
+    fetch: 
+        src: "{{ item.files[0].path }}"
+        dest: "{{ workspace }}/results/"
+        flat: yes
+    with_items:
+            - "{{ junit_results_path.results }}"
+    when:
+      - inventory_hostname in groups['sms']

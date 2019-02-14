@@ -1,0 +1,56 @@
+#Copyright (c) 2016-2018 Intel, Inc.  All rights reserved.
+#
+
+# Set defaults
+[MTTDefaults]
+description = MPI hello world
+platform = pluto
+
+# Get the system profile
+[Profile:Installed]
+
+#======================================================================
+# Test get phases - get the tests that the
+# target software will run.
+#======================================================================
+
+[ASIS TestGet:HelloWorld]
+plugin = Copytree
+src = /opt/mtt/samples/python/
+
+#======================================================================
+# Test build phase
+#======================================================================
+
+[TestBuild:HelloWorld]
+parent = TestGet:HelloWorld
+plugin = Shell
+
+# Use our built ompi install
+command = mpicc /home/test/mtt/samples/python/mpi_hello_world.c -o mpi_hello_world 
+#======================================================================
+# Define some default launcher execution parameters
+#======================================================================
+
+[LauncherDefaults:SLURM]
+plugin = SLURM
+command = srun
+job_name = MTT_TEST
+options = -N {{ num_compute }} --mpi={{ mpi_type | default("pmix") }} 
+
+#----------------------------------------------------------------------
+[TestRun:HelloWorld]
+plugin = SLURM
+parent = TestBuild:HelloWorld
+test_list = mpi_hello_world
+
+#======================================================================
+# Reporter phase
+#======================================================================
+[Reporter:Console]
+plugin = TextFile
+
+[Reporter:JunitXML]
+plugin = JunitXML
+filename=ompi_hello_world.xml
+

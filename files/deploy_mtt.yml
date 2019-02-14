@@ -1,0 +1,136 @@
+ - job:
+         name: deploy_mtt 
+         description: "This is the job to run OpenMPI's MTT on the clusters"
+         project-type: freestyle
+         block-downstream: false
+         concurrent: true
+         properties:
+                 - authorization:
+                         hpc-sig-admin:
+                                 - credentials-create
+                                 - credentials-delete
+                                 - credentials-manage-domains
+                                 - credentials-update
+                                 - credentials-view
+                                 - job-build
+                                 - job-cancel
+                                 - job-configure
+                                 - job-delete
+                                 - job-discover
+                                 - job-move
+                                 - job-read
+                                 - job-status
+                                 - job-workspace
+                                 - ownership-jobs
+                                 - run-delete
+                                 - run-update
+                                 - scm-tag
+                         hpc-sig-devel:
+                                 - job-build
+                                 - job-read
+         parameters:
+                 - node:
+                         name: cluster
+                         allowed-slaves:
+                                 - tx2ohpc
+                                 - d05ohpc
+                                 - qdfohpc
+                         allowed-multiselect: True
+                         description: 'Which cluster to use'
+                 - string:
+                         name: client_branch
+                         default: 'master'
+                         description: 'Branch name of the MrP client to use'
+                 - string:
+                         name: automation_branch
+                         default: 'master'
+                         description: 'Branch name of the hpc_lab_setup to use'
+                 - choice:
+                         name: method
+                         choices:
+                                 - stateful
+                                 - stateless
+                         default: 'stateful'
+                         description: 'The type of OHPC install to do'
+         builders:
+                 - shell: |
+                        #!/bin/bash
+                        set -ex
+
+                        mr_provisioner_url='http://10.40.0.11:5000'
+                        mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
+
+                        MTT_HOME='/home/test/mtt'
+
+                        if [ ${method} == 'stateful' ]; then
+                                enable_warewulf='False'
+                        else
+                                enable_warewulf='True'
+                        fi
+
+                        if [ ${cluster} == 'd05ohpc' ]; then
+                                master_name='d05ohpc'
+                                cnodes=('d0501' 'd0502' 'd0503')
+                                num_compute='3'
+                        elif [ ${cluster} == 'tx2ohpc' ]; then
+                                master_name='tx2ohpc'
+                                cnodes=('tx201' 'tx202')
+                                num_compute='2'
+                        elif [ ${cluster} == 'qdfohpc' ]; then
+                                master_name='qdfohpc'
+                                cnodes=('qdf01' 'qdf02' 'qdf03')
+                                num_compute='3'
+                        fi
+
+                        if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
+                            rm -rf ${WORKSPACE}/mr-provisioner-client
+                        fi
+                        git clone -b ${client_branch} https://github.com/Linaro/mr-provisioner-client.git ${WORKSPACE}/mr-provisioner-client
+
+                        master_ip=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${master_name} --interface eth1 )
+
+                        for i in "${cnodes[@]}";
+                        do
+                                declare ip_${i}=$( ./mr-provisioner-client/mrp_client.py --mrp-url=${mr_provisioner_url} --mrp-token=${mr_provisioner_token} net --action getip --machine ${i} --interface eth1 )
+                        done
+
+                        cat << EOF > ${WORKSPACE}/hosts
+                        [sms]
+                        ${master_ip}
+                        [cnodes]
+                        $(for i in "${cnodes[@]}"; do var=ip_${i}; echo -e "${!var}"; done)
+                        [ionodes]
+                        ${master_ip}
+                        [devnodes]
+                        ${master_ip}
+                        EOF
+
+                        cat << EOF > ${WORKSPACE}/mtt_args.yml
+                        num_compute: ${num_compute}
+                        enable_warewulf: ${enable_warewulf}
+                        MTT_HOME: ${MTT_HOME}
+                        workspace: ${WORKSPACE}
+                        test_plans:
+                        - ompi_hello_world
+                        EOF
+
+                        if [ -d ${WORKSPACE}/results ]; then
+                            rm -rf ${WORKSPACE}/results
+                        fi
+                        mkdir ${WORKSPACE}/results
+
+                        if [ -d ${WORKSPACE}/hpc_lab_setup ]; then
+                            rm -rf ${WORKSPACE}/hpc_lab_setup
+                        fi
+                        git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git ${WORKSPACE}/hpc_lab_setup
+
+                        eval `ssh-agent`
+                        ssh-add
+                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v -u root "${WORKSPACE}/hpc_lab_setup/files/ansible/deploy_mtt.yml" -i "${WORKSPACE}/hosts" --extra-vars="@${WORKSPACE}/mtt_args.yml"
+                        ssh-agent -k 
+
+         publishers:
+                 - junit:
+                        results: "results/*.xml, results/**/*.xml, results/**/**/*.xml" 
+                        keep-long-stdio: yes
+                        allow-empty-results: yes
