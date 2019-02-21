@@ -8,4 +8,6 @@ jslave_list:
 - "tx2bench"
 - "qdfohpc"
 - "qdfbench"
+- "x86ohpc"
+- "x86bench"
 - "xecutor"

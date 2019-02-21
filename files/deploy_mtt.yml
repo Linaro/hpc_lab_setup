@@ -35,6 +35,7 @@
                                  - tx2ohpc
                                  - d05ohpc
                                  - qdfohpc
+                                 - x86ohpc
                          allowed-multiselect: True
                          description: 'Which cluster to use'
                  - string:

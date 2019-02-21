@@ -35,6 +35,7 @@
                                  - d05ohpc
                                  - qdfohpc
                                  - tx2ohpc
+                                 - x86ohpc
                          allowed-multiselect: true
                          ignore-offline-nodes: true
                          description: 'Node on which to execute this job'
@@ -64,7 +65,6 @@
                  - shell: |
                         #!/bin/bash
                         set -ex
-                        arch='aarch64'
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
 
@@ -83,6 +83,11 @@
                                 cnodes=('tx201' 'tx202')
                                 num_compute='2'
                                 compute_regex='tx20[1-2]'
+                        elif [ ${node} == 'x86ohpc' ]; then
+                                master_name='x86ohpc'
+                                cnodes=('x8601' 'x8602')
+                                num_compute='2'
+                                compute_regex='x860[1-2]'
                         fi
 
                         if [ -d ${WORKSPACE}/mr-provisioner-client ]; then

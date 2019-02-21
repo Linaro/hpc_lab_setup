@@ -6,3 +6,5 @@ sftp_groups:
   group: huawei
 - regex: ".*tx.*"
   group: cavium 
+- regex: ".*x86.*"
+  group: intel

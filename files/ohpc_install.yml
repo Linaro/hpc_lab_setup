@@ -35,6 +35,7 @@
                                  - d05ohpc
                                  - qdfohpc
                                  - tx2ohpc
+                                 - x86ohpc
                          allowed-multiselect: true
                          ignore-offline-nodes: true
                          description: 'Node on which to execute this job'
@@ -57,7 +58,6 @@
                         #!/bin/bash
                         set -ex
 
-                        arch='aarch64'
                         mr_provisioner_url='http://10.40.0.11:5000'
                         mr_provisioner_token=$(cat "/home/${NODE_NAME}/mrp_token")
 
@@ -123,6 +123,26 @@
                                 enable_mellanox_ib=True
                                 mofed_install_opts="--distro rhel7.5alternate"
                                 enable_socket_direct=True
+                        elif [ ${node} == 'x86ohpc' ]; then
+                                mellanox_iso_url=""
+                                mellanox_iso_file=""
+                                master_ipoib_internal='ib0'
+                                cnodes_ipoib_internal='ib0'
+                                master_name='x86ohpc'
+                                cnodes=('x8601' 'x8602')
+                                master_eth_internal='eno1'
+                                eth_provision='eno1'
+                                num_compute='2' 
+                                compute_prefix='x860'
+                                compute_regex='x860[1-2]'
+                                kargs=''
+                                enable_opensm=False
+                                enable_ipoib=False
+                                enable_ifup=False
+                                enable_linux_ib=False
+                                enable_mellanox_ib=False
+                                mofed_install_opts=""
+                                enable_socket_direct=False
                         elif [ ${node} == 'd05ohpc' ]; then
                                 master_ipoib_internal='ib0'
                                 cnodes_ipoib_internal='ib0'

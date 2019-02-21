@@ -3,3 +3,4 @@ vendors_list:
         - cavium
         - qualcomm
         - huawei
+        - intel

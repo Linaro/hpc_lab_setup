@@ -36,6 +36,7 @@
                                  - d05
                                  - qdf
                                  - tx2
+                                 - x86
                          description: 'The cluster of machines to be provisioned'
                  - string:
                          name: client_branch
@@ -51,6 +52,10 @@
                         set -ex
                         old_ifs=${IFS}
                         IFS=""
+                        # Defaults
+                        machine_arch=AArch64
+                        job_type=ohpc
+
 
                         if [ ${machine_type} == "qdf" ]; then
                                 machine_subarch=GrubWithOptionEfiboot
@@ -74,6 +79,18 @@
                                 repo="http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/"
                                 tx2="earlycon console=tty0"
                                 special=(${tx2} ${tx2} ${tx2})
+                        elif [ ${machine_type} == "x86" ]; then
+                                machine_arch=Intel
+                                machine_subarch=pxelinux
+                                machine_name="x86ohpc,x8601,x8602"
+                                preseed_type="kickstart"
+                                kernel_desc="CentOS 7.6 AMD64"
+                                initrd_desc="CentOS 7.6 AMD64"
+                                preseed_name="CentOS.Upstream.amd64"
+                                stagetwo="http://10.40.0.13/mirror.centos.org/centos/7/os/x86_64/"
+                                repo="http://10.40.0.13/mirror.centos.org/centos/7/os/x86_64/"
+                                x86="console=ttyS1"
+                                special=(${x86} ${x86} ${x86})
                         elif [ ${machine_type} == "d05" ]; then
                                 machine_subarch=GrubWithOptionEfiboot
                                 machine_name="d05ohpc,d0501,d0502,d0503"
@@ -86,10 +103,6 @@
                                 d05="modprobe.blacklist=hibmc_drm earlycon console=ttyAMA0,115200"
                                 special=(${d05} ${d05} ${d05} ${d05})
                         fi
-
-                        # Defaults
-                        machine_arch=AArch64
-                        job_type=ohpc
 
                         kernel_opts=""
                         for ((i = 0; i < ${#special[@]}; i++))

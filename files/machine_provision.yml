@@ -37,6 +37,7 @@
                                  - d05
                                  - qdf
                                  - tx2
+                                 - x86
                          description: 'Micro-architecture of the machine to be provisioned'
                  - choice:
                          name: job_type
@@ -68,6 +69,16 @@
                         #!/bin/bash
                         set -ex
 
+                        # Defaults
+                        machine_name="${machine_type}${job_type}"
+                        machine_arch="AArch64"
+                        machine_subarch="GrubWithOptionEfiboot"
+
+                        if [ "${machine_type}" == "x86" ]; then
+                          machine_arch="Intel"
+                          machine_subarch="pxelinux"
+                        fi
+
                         # Chose default OS
                         if [ "${os_type}" == "default" ]; then
                           if [ "${job_type}" == "bench" ]; then
@@ -87,6 +98,12 @@
                           initrd_desc="Debian ERP 18.06 w/QED&BNX2X"
                           preseed_name="Debian"
                           kernel_opts=
+                          if [ "${machine_arch}" == "Intel" ]; then
+                            kernel_desc="Debian Stretch AMD64"
+                            initrd_desc="Debian Stretch AMD64"
+                            preseed_name="Debian.amd64"
+                            kernel_opts="earlycon"
+                          fi
                         elif [ "${os_type}" == "centos" ]; then
                           preseed_type="kickstart"
                           kernel_desc="CentOS ERP 18.06"
@@ -99,6 +116,12 @@
                           initrd_desc="CentOS 7.5"
                           preseed_name="CentOS.Upstream"
                           kernel_opts="ip=dhcp text inst.stage2=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.repo=http://10.40.0.13/mirror.centos.org/altarch/7/os/aarch64/ inst.ks=file:/ks.cfg"
+                          if [ "${machine_arch}" == "Intel" ]; then
+                            kernel_desc="CentOS 7.6 AMD64"
+                            initrd_desc="CentOS 7.6 AMD64"
+                            preseed_name="CentOS.Upstream.amd64"
+                            kernel_opts="ip=dhcp text inst.stage2=http://10.40.0.13/mirror.centos.org/centos/7/os/x86_64/ inst.repo=http://10.40.0.13/mirror.centos.org/centos/7/os/x86_64/ inst.ks=file:/ks.cfg"
+                          fi
                         elif [ "${os_type}" == "opensuse" ]; then
                           preseed_type="autoyast"
                           kernel_desc="openSUSE Leap 15.1"
@@ -111,16 +134,13 @@
                             exit 1
                         fi
 
-                        # Defaults
-                        machine_name="${machine_type}${job_type}"
-                        machine_arch=AArch64
-                        machine_subarch=GrubWithOptionEfiboot
-
                         # Special cases
                         if [ "${machine_type}" == "d03" ]; then
                             kernel_opts="${kernel_opts} modprobe.blacklist=hibmc_drm earlycon console=ttyS0,115200"
                         elif [ "${machine_type}" == "tx2" ]; then
                             kernel_opts="${kernel_opts} earlycon console=tty0"
+                        elif [ "${machine_type}" == "x86" ]; then
+                            kernel_opts="${kernel_opts} console=ttyS1"
                         else
                             kernel_opts="${kernel_opts} earlycon console=ttyAMA0,115200"
                         fi

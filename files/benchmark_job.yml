@@ -36,6 +36,7 @@
                                  - d05bench
                                  - qdfbench
                                  - tx2bench
+                                 - x86bench
                          allowed-multiselect: true
                          ignore-offline-nodes: true
                          description: 'Node with which to run the benchmark on the machine'
@@ -116,7 +117,7 @@
                             node_type=tx2
                             machine_type=aarch64
                             ;;
-                        x86_64*)
+                        x86*)
                             vendor='intel'
                             node_type=x86
                             machine_type=x86_64
