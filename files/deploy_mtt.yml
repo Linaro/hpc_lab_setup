@@ -81,6 +81,10 @@
                                 master_name='qdfohpc'
                                 cnodes=('qdf01' 'qdf02' 'qdf03')
                                 num_compute='3'
+                        elif [ ${cluster} == 'x86ohpc' ]; then
+                                master_name='x86ohpc'
+                                cnodes=('x8601' 'x8602')
+                                num_compute='2'
                         fi
 
                         if [ -d ${WORKSPACE}/mr-provisioner-client ]; then
@@ -110,6 +114,8 @@
                         num_compute: ${num_compute}
                         enable_warewulf: ${enable_warewulf}
                         MTT_HOME: ${MTT_HOME}
+                        MTT_SCRATCH: ${MTT_HOME}/mttscratch
+                        cluster: ${cluster}
                         workspace: ${WORKSPACE}
                         test_plans:
                         - ompi_hello_world

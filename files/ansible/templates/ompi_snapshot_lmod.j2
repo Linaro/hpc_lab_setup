@@ -1,0 +1,25 @@
+#%Module1.0#####################################################################
+
+proc ModulesHelp { } {
+
+puts stderr " "
+puts stderr "This module loads the openmpi4 library built with the gnu8 toolchain."
+puts stderr "\nVersion 4.1.0\n"
+
+}
+module-whatis "Name: openmpi4 built with gnu8 toolchain"
+module-whatis "Version: 4.1.0"
+module-whatis "Category: runtime library"
+module-whatis "Description: A powerful implementation of MPI"
+module-whatis "URL: http://www.open-mpi.org"
+
+set     version			    4.1.0
+
+setenv          MPI_DIR             /home/test/mtt/mttscratch/MiddlewareBuild_OMPIMaster/
+prepend-path    PATH                /home/test/mtt/mttscratch/MiddlewareBuild_OMPIMaster/bin/
+prepend-path    MANPATH             /home/test/mtt/mttscratch/MiddlewareBuild_OMPIMaster/share/man
+prepend-path	LD_LIBRARY_PATH	    /home/test/mtt/mttscratch/MiddlewareBuild_OMPIMaster/lib
+prepend-path    MODULEPATH          /opt/ohpc/pub/moduledeps/gnu8-openmpi3
+prepend-path    PKG_CONFIG_PATH     /opt/ohpc/pub/mpi/openmpi3-gnu8/3.1.2/lib/pkgconfig
+
+family "MPI"

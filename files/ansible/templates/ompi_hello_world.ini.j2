@@ -4,10 +4,24 @@
 # Set defaults
 [MTTDefaults]
 description = MPI hello world
-platform = pluto
+platform = {{ cluster }}
 
 # Get the system profile
 [Profile:Installed]
+
+[ASIS MiddlewareGet:OMPIMaster]
+plugin = OMPI_Snapshot
+url =  https://download.open-mpi.org/nightly/open-mpi/master
+version_file = /home/test/mtt/mttscratch/VERSION
+mpi_name = ompi-nightly-master
+
+#----------------------------------------------------------------------
+
+[ASIS MiddlewareBuild:OMPIMaster]
+parent = MiddlewareGet:OMPIMaster
+plugin = Autotools
+configure_options = --enable-debug
+make_options = -j 
 
 #======================================================================
 # Test get phases - get the tests that the
@@ -16,7 +30,7 @@ platform = pluto
 
 [ASIS TestGet:HelloWorld]
 plugin = Copytree
-src = /opt/mtt/samples/python/
+src = {{ MTT_SCRATCH }}
 
 #======================================================================
 # Test build phase
@@ -28,6 +42,19 @@ plugin = Shell
 
 # Use our built ompi install
 command = mpicc /home/test/mtt/samples/python/mpi_hello_world.c -o mpi_hello_world 
+modules = openmpi3
+modules_unload = openmpi4/4.1.0
+#======================================================================
+
+[TestBuild:HelloWorldMaster]
+parent = TestGet:HelloWorld
+plugin = Shell
+middleware = MiddlewareBuild:OMPIMaster
+
+# Use our built ompi install
+command = mpicc /home/test/mtt/samples/python/mpi_hello_world.c -o mpi_hello_world_master 
+modules = openmpi4/4.1.0
+modules_unload = openmpi3
 #======================================================================
 # Define some default launcher execution parameters
 #======================================================================
@@ -44,6 +71,11 @@ plugin = SLURM
 parent = TestBuild:HelloWorld
 test_list = mpi_hello_world
 
+#----------------------------------------------------------------------
+[TestRun:HelloWorldMaster]
+plugin = SLURM
+parent = TestBuild:HelloWorldMaster
+test_list = mpi_hello_world_master
 #======================================================================
 # Reporter phase
 #======================================================================
