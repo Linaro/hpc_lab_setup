@@ -35,6 +35,13 @@
       - inventory_hostname in groups['sms']
       - enable_warewulf == True
 
+  - name: Clean the MTT_SCRATCH directory
+    file:
+            path: "{{ MTT_SCRATCH }}"
+            state: absent
+    when:
+      - inventory_hostname in groups['sms']
+
   - name: Clone MTT repository
     git:
             repo: 'https://github.com/open-mpi/mtt.git'
@@ -56,16 +63,23 @@
             - "{{ test_plans }}"
     when:
       - inventory_hostname in groups['sms']
-        
-  - name: Create directory because MTT
+
+  - name: Create Directory for Snapshot module template
     file:
-            path: "/opt/mtt/samples/python/"
+            path: "/opt/ohpc/pub/moduledeps/gnu8/openmpi4"
             state: directory
+    when:
+      - inventory_hostname in groups['sms']
+        
+  - name: Put in the Lmod OpenMPI Snapshot module template
+    template:
+            src: "templates/ompi_snapshot_lmod.j2"
+            dest: "/opt/ohpc/pub/moduledeps/gnu8/openmpi4/4.1.0"
     when:
       - inventory_hostname in groups['sms']
 
   - name: Execute Hello World MTT test
-    shell: "{{ MTT_HOME }}/pyclient/pymtt.py {{ MTT_HOME }}/samples/python/{{ item }}.ini --description {{ item }} --scratch-dir {{ MTT_HOME }}"
+    shell: "{{ MTT_HOME }}/pyclient/pymtt.py {{ MTT_HOME }}/samples/python/{{ item }}.ini --description {{ item }} --scratch-dir {{ MTT_SCRATCH }}"
     environment:
             MTT_HOME: "{{ MTT_HOME }}"
     with_items:
@@ -75,7 +89,7 @@
 
   - name: Find the JUnit results
     find:
-            paths: "{{ MTT_HOME }}"
+            paths: "{{ MTT_SCRATCH }}"
             patterns: "{{ item }}.xml"
     register: junit_results_path
     failed_when: junit_results_path.matched == 0
