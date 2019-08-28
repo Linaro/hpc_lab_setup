@@ -7,7 +7,7 @@ shopt -s expand_aliases
 #### LOCAL BUILD ENV
 ### TX2 BUILD
 NPROC=8
-USER=bgerdeb
+USER=build
 ROOT="/home/$USER"
 DIR_HOME="$ROOT/lustre_build"
 alias l_make="$MAKE_ENV make -C"  
@@ -32,12 +32,12 @@ SPL_URL="https://github.com/zfsonlinux/zfs/releases/download/zfs-$ZFS_VERSION/sp
 DIR_E2PROGS="$DIR_HOME/e2fsprogs"
 DIR_E2PROGS_SRC="$DIR_E2PROGS/e2fsprogs"
 E2FSPROGS_PACKAGING_URL="http://archive.ubuntu.com/ubuntu/pool/main/e/e2fsprogs/e2fsprogs_1.44.6-1.debian.tar.xz"
-DIR_RPMBUILD="/home/bgerdeb/rpmbuild/RPMS/aarch64/"
+DIR_RPMBUILD="$ROOT/rpmbuild/RPMS/aarch64/"
 
 #### LUSTRE BUILD ENV
 DIR_LUSTRE="$DIR_HOME/lustre"
 DIR_LUSTRE_SRC="$DIR_LUSTRE/lustrearm"
-LUSTRE_BRANCH="lustre-arm"
+LUSTRE_BRANCH="master"
 
 
 #### BUILD
@@ -63,7 +63,11 @@ function isinstalled {
 ######
 # Kernel sources !
 # Better kernel sources : http://lxsoft101.cern.ch/centos-debuginfo/7/aarch64/
-#sudo yum --enablerepo=base-debuginfo install -y kernel-debuginfo
+# For kernel 4.14.0-115.10.1
+# wget http://lxsoft101.cern.ch/centos-debuginfo/7/aarch64/kernel-debuginfo-4.14.0-115.10.1.el7a.aarch64.rpm
+# wget http://lxsoft101.cern.ch/centos-debuginfo/7/aarch64/kernel-debuginfo-common-4.14.0-115.10.1.el7a.aarch64.rpm
+# NOTE : It seems wget http://lxsoft101.cern.ch/centos-debuginfo/7/aarch64/kernel-debuginfo-$(uname -a).rpm should work
+
 
 sudo yum -y install "@Development Tools"
 sudo yum -y install xmlto asciidoc elfutils-libelf-devel zlib-devel binutils-devel newt-devel python-devel \
@@ -72,11 +76,11 @@ sudo yum -y install xmlto asciidoc elfutils-libelf-devel zlib-devel binutils-dev
 			pesign numactl-devel pciutils-devel ncurses-devel libselinux-devel fio \
 			zlib-devel libuuid-devel libattr-devel libblkid-devel libselinux-devel libudev-devel \
 			parted lsscsi ksh openssl-devel elfutils-libelf-devel createrepo \
-			vim wget libaio-devel redhat-lsb-core lsof
+			vim wget libaio-devel redhat-lsb-core lsof texinfo
 
 # Python 3 is in epel...
 sudo yum -y --exclude=kernel* install epel-release
-#sudo yum -y --exclude=kernel* install --enablerepo=epel python36 python36-devel python36-setuptools python36-cffi libyaml-devel libyaml libtool
+sudo yum -y --exclude=kernel* install --enablerepo=epel python36 python36-devel python36-setuptools python36-cffi libyaml-devel libyaml libtool
 
 sudo yum -y --exclude=kernel* install http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/aarch64/ohpc-release-1.3-1.el7.aarch64.rpm || true 
 
@@ -85,45 +89,9 @@ sudo yum -y --exclude=kernel* install http://build.openhpc.community/OpenHPC:/1.
 # Couldn't find doc on how to do build-ids...
 sudo sed -i 's/%{?_missing_build_ids_terminate_build:--strict-build-id}//g' /usr/lib/rpm/macros
 
-## Build ZFS (and SPL :( ) upstream only.
-
-#wget -P $DIR_ZFS/ $ZFS_URL
-#wget -P $DIR_ZFS/ $SPL_URL
-
-#tar -C $DIR_ZFS -xzf $DIR_ZFS/$(basename $ZFS_URL)
-#tar -C $DIR_ZFS -xzf $DIR_ZFS/$(basename $SPL_URL)
-# BUILD SPL
-
-# Build SPL DKMS
-#cd $DIR_SPL_SRC
-#sh $DIR_SPL_SRC/autogen.sh \
-#	&& $DIR_SPL_SRC/configure --with-config=user \
-#	&& l_make $DIR_SPL_SRC -s -j $NPROC \
-#	&& l_make $DIR_SPL_SRC rpm
-
-# Install SPL DKMS
-#mv $DIR_SPL_SRC/*.rpm $DIR_REPO/
-#for file in $DIR_SPL_SRC/*.deb; do sudo gdebi -q --non-interactive $file; mv $file $DIR_REPO/ ; done
-
-# BUILD ZFS DKMS
-#cd $DIR_ZFS_SRC
-#sh "$DIR_ZFS_SRC/autogen.sh" \
-#	&& $DIR_ZFS_SRC/configure --with-config=user --with-linux=$DIR_KERNEL --with-spl=$DIR_SPL_SRC \
-#	&& l_make $DIR_ZFS_SRC -s -j $NPROC \
-#	&& l_make $DIR_ZFS_SRC rpm \
-#
-# Install ZFS DKMS
-#mv $DIR_ZFS_SRC/*.rpm $DIR_REPO/
-##for file in $DIR_ZFS_SRC/*.deb; do sudo gdebi -q --non-interactive $file; mv $file $DIR_REPO/ ; done
-
-#### TODO: INSERT TESTS HERE
-
-#l_make $DIR_SPL_SRC clean || true
-#l_make $DIR_ZFS_SRC clean || true
-
 # Build SPL KMOD
 if ! isinstalled 'spl'; then
-	echo "SPL INSTALLED : SKIPPING BUILD"
+	echo "SPL : SKIPPING BUILD"
 else
 
 	cd $DIR_SPL_SRC
@@ -150,8 +118,8 @@ else
 	##for file in $DIR_SPL_SRC/*.deb; do sudo gdebi -q --non-interactive $file; done
 fi
 
-if isinstalled 'zfs'; then
-	echo "ZFS INSTALLED : SKIPPING BUILD"
+if ! isinstalled 'zfs'; then
+	echo "ZFS : SKIPPING BUILD"
 else
 	# If you have a "debug kernel", it won't accept CDDL
 	sudo sed -i 's/CDDL/GPL/g' $DIR_ZFS_SRC/META
@@ -179,7 +147,7 @@ if isinstalled 'e2fsprogs'; then
 else
 	# Build e2fsprogs
 
-	git clone -b master-lustre git://git.whamcloud.com/tools/e2fsprogs.git $DIR_E2PROGS_SRC
+	git clone -b master-lustre git://git.whamcloud.com/tools/e2fsprogs.git $DIR_E2PROGS_SRC || true
 
 	# Get packaging
 	wget -P $DIR_E2PROGS $E2FSPROGS_PACKAGING_URL
@@ -201,11 +169,9 @@ else
 	sudo yum -y --exclude=kernel* --disabelrepo='*' --enablerepo='lustre_repo' install e2fsprogs
 
 fi
-# for file in $DIR_E2PROGS/*.deb; do sudo gdebi -q --non-interactive $file; done
 
 # Get Lustre source
-#git clone -b $LUSTRE_BRANCH git://git.whamcloud.com/fs/lustre-release.git $DIR_LUSTRE_SRC || true
-#git --git-dir $DIR_LUSTRE_SRC reset --hard && git --git-dir $DIR_LUSTRE_SRC clean -dfx || true
+git clone -b $LUSTRE_BRANCH git://git.whamcloud.com/fs/lustre-release.git $DIR_LUSTRE_SRC || true
 
 # Build Lustre-client
 cd $DIR_LUSTRE_SRC
@@ -213,22 +179,14 @@ sh "$DIR_LUSTRE_SRC/autogen.sh" \
 	&& $DIR_LUSTRE_SRC/configure --disable-server \
 	&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
 
-#git --git-dir $DIR_LUSTRE_SRC reset --hard && git --git-dir $DIR_LUSTRE_SRC clean -dfx || true
-
 # Build Lustre-server with ZFS and LDISKFS Support
 
-#### Throw out the Lustre patches to our kernel's EXT4 FS Drivers that do not apply
-#sed -i 's/ubuntu18\/ext4-corrupted-inode-block-bitmaps-handling-patches-001.patch//g' "$DIR_LUSTRE_SRC/$LDISKFS_PATCH_SERIES"
-#sed -i 's/ubuntu18\/ext4-dont-check-before-replay.patch//g' "$DIR_LUSTRE_SRC/$LDISKFS_PATCH_SERIES"
-# + some for CentOS (assuming you mv the ubuntu patches onto the rhel7.6, assuming rhel's 4.14's ext4 is closer to 4.15ubuntu than 3.10rhel
-####
-
-cd $DIR_LUSTRE_SRC
-sh "$DIR_LUSTRE_SRC/autogen.sh" \
-	&& $DIR_LUSTRE_SRC/configure --enable-server --enable-modules \
-  		--with-zfs="$DIR_ZFS_SRC" \
-		--enable-ldiskfs \
-       	&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
+#cd $DIR_LUSTRE_SRC
+#sh "$DIR_LUSTRE_SRC/autogen.sh" \
+#	&& $DIR_LUSTRE_SRC/configure --enable-server --enable-modules \
+#  		--with-zfs="$DIR_ZFS_SRC" \
+#		--enable-ldiskfs \
+#       	&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
 
 echo "###########LUSTRE BUILT#################"
 
