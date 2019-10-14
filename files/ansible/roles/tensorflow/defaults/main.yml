@@ -1,0 +1,112 @@
+---
+python3: "/usr/bin/python3"
+user: "builder"
+build_id: "42"
+dir_root: "/home/{{ user }}/{{ build_id }}"
+dir_home: "{{ dir_root }}/tensorflow_build"
+dir_repo: "{{ dir_root }}/repo_tensorflow"
+dir_built: "{{ dir_root }}/built_tarballs"
+venv_path: "{{ dir_root }}/virtualenv"
+
+
+# NumPy variables
+# See : https://github.com/ansible/ansible/issues/8603 
+# (No it's not "resolved", it's "bad design we can't fix")
+numpy_version: "1.17.3"
+numpy_dir_base: "{{ dir_home }}/numpy/{{ numpy_version}}"
+numpy_dir_src: "{{ numpy_dir_base }}/numpy-{{ numpy_version }}"
+numpy_dir_output: "{{ numpy_dir_src }}/dist"
+numpy:
+       release_url: "https://github.com/numpy/numpy/releases/download/v1.17.3/numpy-1.17.3.zip"
+       release_zip: "numpy-1.17.3.zip"
+       release_sha256: "a0678793096205a4d784bd99f32803ba8100f639cf3b932dc63b21621390ea7e"
+       wheel: "{{ numpy_dir_output }}/numpy-1.17.3-cp36-cp36m-linux_aarch64.whl"
+       patching_required: true
+       patch: 'numpy_centos7_aarch64.patch'
+       built_tarball: "numpy_{{ numpy_version }}_{{ build_id }}.tar.gz"
+
+# TensorFlow variables
+tensorflow_version: "1.15.0"
+tensorflow_dir_base: "{{ dir_home }}/tensorflow/{{ tensorflow_version}}"
+tensorflow_dir_src: "{{ tensorflow_dir_base }}/tensorflow-{{ tensorflow_version }}"
+tensorflow_configure: "{{ tensorflow_dir_src }}/configure"
+tensorflow_dir_output: "/tmp/tensorflow_pkg"
+tensorflow:
+       release_url: "https://github.com/tensorflow/tensorflow/archive/v1.15.0.zip"
+       release_zip: "tensorflow-1.15.0.zip"
+       wheel: "{{ tensorflow_dir_output }}/tensorflow-1.15.0-cp36-cp36m-linux_aarch64.whl"
+       patching_required: true
+       patch: 'patch_bazelbuild.patch'
+       built_tarball: "tensorflow_{{ tensorflow_version }}_{{ build_id }}.tar.gz"
+       cxx_optimizations:
+               - "-D_GLIBCXX_USE_CXX11_ABI=0"
+       c_optimizations:
+               - "-funsafe-math-optimizations"
+               - "-ftree-vectorize"
+               - "-fomit-frame-pointer"
+
+# Bazel variables
+bazel_version: "0.24.1"
+bazel_dir_base: "{{ dir_home }}/bazel"
+bazel_dir_src: "{{ bazel_dir_base }}/{{ bazel_version}}"
+bazel_dir_output: "{{ bazel_dir_src }}/output"
+bazel:
+       release_url: "https://github.com/bazelbuild/bazel/releases/download/0.24.1/bazel-0.24.1-dist.zip"
+       release_zip: "bazel-0.24.1-dist.zip"
+       binary: "{{ bazel_dir_output }}/bazel"
+       patching_required: false
+       built_tarball: "bazel_{{ bazel_version }}_{{ build_id }}.tar.gz"
+
+ohpc_toolchain_base_dir: "/opt/ohpc/pub/compiler/gcc/8.3.0"
+ohpc_toolchain_lib_dir: "{{ ohpc_toolchain_base_dir }}/lib64"
+LD_LIBRARY_PATH: "/opt/ohpc/pub/libs/gnu8/hdf5/1.10.5/lib:/opt/ohpc/pub/libs/gnu8/openblas/0.3.5/lib:/opt/ohpc/pub/mpi/openmpi3-gnu8/3.1.4/lib:/opt/ohpc/pub/compiler/gcc/8.3.0/lib64"
+LD_INCLUDE_PATH: "/opt/ohpc/pub/libs/gnu8/hdf5/1.10.5/include:/opt/ohpc/pub/libs/gnu8/openblas/0.3.5/include:/opt/ohpc/pub/mpi/openmpi3-gnu8/3.1.4/include::/opt/ohpc/pub/compiler/gcc/8.3.0/lib64"
+openblas_library_path: "/opt/ohpc/pub/libs/gnu8/openblas/0.3.5/lib"
+openblas_include_path: "/opt/ohpc/pub/libs/gnu8/openblas/0.3.5/include"
+
+fftw_library_path: "/opt/ohpc/pub/libs/gnu8/openmpi3/fftw/3.3.8/lib"
+fftw_include_path: "/opt/ohpc/pub/libs/gnu8/openmpi3/fftw/3.3.8/include"
+
+hdf5_base_dir: "/opt/ohpc/pub/libs/gnu8/hdf5/1.10.5"
+
+### BUILD DEPENDENCIES
+# Non OHPC, non python, non java
+tf_build_dependencies:
+        - "@Development Tools"
+        - createrepo
+        - vim
+        - wget
+        - unzip
+        - tar
+        - redhat-lsb-core
+
+ohpc_release_url: "http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/aarch64/ohpc-release-1.3-1.el7.aarch64.rpm"
+
+tf_build_ohpc_dependencies:
+        - lmod-ohpc
+        - openmpi3-gnu8-ohpc
+        - ohpc-gnu8-perf-tools
+        - ohpc-gnu8-io-libs
+        - ohpc-gnu8-python-libs
+        - ohpc-gnu8-runtimes
+        - ohpc-gnu8-serial-libs
+        - ohpc-gnu8-parallel-libs
+        - fftw-gnu8-openmpi3-ohpc
+        - lmod-defaults-gnu8-openmpi3-ohpc
+
+tf_build_java8:
+        - java-1.8.0-openjdk
+        - java-1.8.0-openjdk-devel
+
+tf_build_py3_dependencies:
+        - pip
+        - Cython
+        - six
+        - wheel
+        - setuptools
+        - mock
+        - "future>=0.17.1"
+
+tf_build_keras:
+        - "keras_applications==1.0.6"
+        - "keras_preprocessing==1.0.5"
