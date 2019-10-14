@@ -1,0 +1,19 @@
+---
+- name: Make sure pip is upgraded
+  pip:
+          name: setuptools
+          executable: pip3
+          extra_args: '--user --upgrade'
+          state: latest
+
+- name: Install python3 dependencies in venv
+  pip:
+          name: "{{ tf_build_py3_dependencies }}"
+          virtualenv: "{{ venv_path }}"
+          virtualenv_command: "{{ python3 }} -m venv"
+          
+- name: Install keras dependencies in venv
+  pip:
+          name: "{{ tf_build_keras }}"
+          virtualenv: "{{ venv_path }}"
+          extra_args: "--no-deps"

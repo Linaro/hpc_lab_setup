@@ -1,0 +1,63 @@
+---
+- name: Create build dirs numpy
+  file:
+          path: "{{ item }}"       
+          state: directory
+          mode: '0755'
+          owner: "{{ user }}"
+          group: "{{ user }}"
+  with_items:
+          - "{{ numpy_dir_base }}"
+          - "{{ numpy_dir_src }}"
+          - "{{ numpy_dir_output }}"
+
+- name: Fetch numpy release tarball
+  get_url:
+          url: "{{ numpy.release_url }}"
+          dest: "{{ numpy_dir_base }}"
+
+- name: Unzip the release
+  unarchive:
+          src: "{{ numpy_dir_base }}/{{ numpy.release_zip }}"
+          remote_src: yes
+          dest: "{{ numpy_dir_base }}"
+  no_log: true
+
+- name: Make sure numpy hooks up to environment
+  template:
+          src: "numpy-site.cfg.j2"
+          dest: "/home/{{ user }}/.numpy-site.cfg"
+
+- name: Get patch workaround for gcc bug
+  template:
+          src: "{{ numpy.patch }}.j2"
+          dest: "{{ numpy_dir_src }}/{{ numpy.patch }}"
+  when: numpy.patching_required == true 
+
+- name: Apply patch
+  shell: "patch -p0 -i {{ numpy_dir_src }}/{{ numpy.patch }}"
+  args:
+          chdir: "{{ numpy_dir_src }}"
+          executable: "/bin/bash"
+  when: "{{ numpy.patching_required }}"
+  
+- name: Build numpy
+  shell: "source {{ venv_path }}/bin/activate && {{ numpy_dir_src }}/setup.py build bdist_wheel"
+  args:
+          chdir: "{{ numpy_dir_src }}"
+          executable: "/bin/bash"
+  register: numpy_build_log
+- debug: var=numpy_build_log
+
+- name: Install numpy from wheel
+  pip:
+          name: "{{ numpy.wheel }}"
+          virtualenv: "{{ venv_path }}"
+  register: numpy_install_log
+- debug: var=numpy_install_log
+
+- name: Tar-up numpy output
+  archive:
+          path: "{{ numpy_dir_output }}"
+          dest: "{{ dir_built }}/{{ numpy.built_tarball }}"
+          format: gz

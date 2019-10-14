@@ -1,0 +1,21 @@
+---
+- hosts: target
+  tasks:
+          - name: Install EPEL release
+            yum:
+                    name: epel-release
+                    state: latest
+
+          - name: Install Python3.6 from EPEL
+            yum:
+                    name:
+                            - python36
+                            - python36-devel
+                            - python-devel
+                            - python36-setuptools
+                            - python3-pip
+                            - python-setuptools
+                            - python36-cffi
+                            - libyaml
+                            - libyaml-devel
+                    state: latest

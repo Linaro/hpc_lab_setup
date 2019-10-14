@@ -1,0 +1,15 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+sudo ldconfig
+
+ml ohpc
+ml openblas
+ml hdf5
+ml fftw
+
+export HDF5_DIR="{{ hdf5_base_dir }}"

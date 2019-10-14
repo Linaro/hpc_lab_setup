@@ -1,0 +1,102 @@
+---
+- name: Create build dirs tensorflow
+  file:
+          path: "{{ item }}"       
+          state: directory
+          mode: '0755'
+          owner: "{{ user }}"
+          group: "{{ user }}"
+  with_items:
+          - "{{ tensorflow_dir_base }}"
+          - "{{ tensorflow_dir_src }}"
+          - "{{ tensorflow_dir_output }}"
+
+- name: Fetch tensorflow release tarball
+  get_url:
+          url: "{{ tensorflow.release_url }}"
+          dest: "{{ tensorflow_dir_base }}"
+
+- name: Unzip the release
+  unarchive:
+          src: "{{ tensorflow_dir_base }}/{{ tensorflow.release_zip }}"
+          remote_src: yes
+          dest: "{{ tensorflow_dir_base }}"
+  no_log: true
+
+- name: Get the tensorflow configure scipt
+  template:
+          src: "configure_tensorflow.sh.j2"
+          dest: "{{ tensorflow_dir_src }}/configure_tensorflow.sh"
+          mode: '0755'
+          owner: "{{ user }}"
+          group: "{{ user }}"
+
+- name: Configure tensorflow
+  shell: "./configure_tensorflow.sh"
+  args:
+          chdir: "{{ tensorflow_dir_src }}"
+          executable: "/bin/bash"
+  register: tensorflow_configure_log
+- debug: var=tensorflow_configure_log
+
+- name: Get patch for bazel missing requirements
+  template:
+          src: "{{ tensorflow.patch }}.j2"
+          dest: "{{ tensorflow_dir_src }}/{{ tensorflow.patch }}"
+          mode: '0755'
+          owner: "{{ user }}"
+          group: "{{ user }}"
+  when: tensorflow.patching_required
+
+- name: Apply patch
+  shell: "patch -p0 -i {{ tensorflow_dir_src }}/{{ tensorflow.patch }}"
+  args:
+          chdir: "{{ tensorflow_dir_src }}"
+          executable: "/bin/bash"
+  when: tensorflow.patching_required 
+
+- name: Get the tensorflow build scipt
+  template:
+          src: "build_tensorflow.sh.j2"
+          dest: "{{ tensorflow_dir_src }}/build_tensorflow.sh"
+          mode: '0755'
+          owner: "{{ user }}"
+          group: "{{ user }}"
+
+- name: Build tensorflow
+  shell: "./build_tensorflow.sh"
+  args:
+          chdir: "{{ tensorflow_dir_src }}"
+          executable: "/bin/bash"
+  register: tensorflow_build_log
+- debug: var=tensorflow_build_log
+
+- name: Build tensorflow package
+  shell: "bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg"
+  args:
+          chdir: "{{ tensorflow_dir_src }}"
+          executable: "/bin/bash"
+  register: tensorflow_build_pkg_log
+- debug: var=tensorflow_build_pkg_log
+
+- name: Tar-up tensorflow output
+  archive:
+          path: "{{ tensorflow_dir_output }}"
+          dest: "{{ dir_built }}/{{ tensorflow.built_tarball }}"
+          format: gz
+
+- name: Configure tensorflow
+  shell: "source {{ venv_path }}/bin/activate && HDF5_DIR={{ hdf5_base_dir }} pip install h5py"
+  args:
+          chdir: "{{ tensorflow_dir_src }}"
+          executable: "/bin/bash"
+  register: h5py_install_log
+- debug: var=h5py_install_log
+
+- name: Install tensorflow
+  pip:
+          name: "{{ tensorflow.wheel }}"
+          virtualenv: "{{ venv_path }}"
+  register: tensorflow_install_log
+- debug: var=tensorflow_install_log
+
