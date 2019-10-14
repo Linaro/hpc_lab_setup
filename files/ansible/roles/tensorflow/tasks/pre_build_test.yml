@@ -1,0 +1,14 @@
+---
+- name: Make sure Lmod is good
+  shell: "ml"
+  args:
+          executable: "/bin/bash"
+  register: ml_log
+- debug: var=ml_log
+   
+- name: Make sure Java and blabla is there
+  shell: "printenv"
+  args:
+          executable: "/bin/bash"
+  register: env_log
+- debug: var=env_log

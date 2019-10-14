@@ -1,0 +1,58 @@
+---
+- name: Delete build dirs bazel
+  file:
+          path: "{{ item }}"       
+          state: absent
+  with_items:
+          - "{{ bazel_dir_base }}"
+          - "{{ bazel_dir_src }}"
+          - "{{ bazel_dir_output }}"
+
+- name: Create build dirs bazel
+  file:
+          path: "{{ item }}"       
+          state: directory
+          mode: '0755'
+          owner: "{{ user }}"
+          group: "{{ user }}"
+  with_items:
+          - "{{ bazel_dir_base }}"
+          - "{{ bazel_dir_src }}"
+          - "{{ bazel_dir_output }}"
+
+- name: Fetch bazel release tarball
+  get_url:
+          url: "{{ bazel.release_url }}"
+          dest: "{{ bazel_dir_base }}"
+
+- name: Unzip the release
+  unarchive:
+          src: "{{ bazel_dir_base }}/{{ bazel.release_zip }}"
+          remote_src: yes
+          dest: "{{ bazel_dir_src }}"
+
+- name: Build bazel
+  shell: "EXTRA_BAZEL_ARGS='--host_javabase=@local_jdk//:jdk' ./compile.sh"
+  args:
+          chdir: "{{ bazel_dir_src }}"
+          executable: "/bin/bash"
+  register: bazel_build_log
+- debug: var=bazel_build_log
+
+- name: Tar-up bazel output
+  archive:
+          path: "{{ bazel_dir_output }}"
+          dest: "{{ dir_built }}/{{ bazel.built_tarball }}"
+          format: gz
+
+- name: Install bazel
+  copy:
+          src: "{{ bazel.binary }}"
+          remote_src: yes
+          dest: "/usr/local/bin"
+          owner: root
+          group: root
+          mode: '0755'
+  become: yes
+  become_user: root
+  become_method: sudo

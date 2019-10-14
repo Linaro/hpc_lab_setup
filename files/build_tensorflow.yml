@@ -1,0 +1,106 @@
+ - job:
+         name: build_tensorflow
+         description: "This is a job to build Tensorflow on a machine"
+         project-type: freestyle
+         block-downstream: false
+         concurrent: true
+         node: "xecutor"
+         properties:
+                 - authorization:
+                         hpc-sig-admin:
+                                 - credentials-create
+                                 - credentials-delete
+                                 - credentials-manage-domains
+                                 - credentials-update
+                                 - credentials-view
+                                 - job-build
+                                 - job-cancel
+                                 - job-configure
+                                 - job-delete
+                                 - job-discover
+                                 - job-move
+                                 - job-read
+                                 - job-status
+                                 - job-workspace
+                                 - ownership-jobs
+                                 - run-delete
+                                 - run-update
+                                 - scm-tag
+                         hpc-sig-devel:
+                                 - job-build
+         parameters:
+                 - node:
+                         name: node
+                         allowed-slaves:
+                                 - d03bench
+                                 - d05bench
+                                 - qdfbench
+                                 - tx2bench
+                                 - x86bench
+                         allowed-multiselect: true
+                         ignore-offline-nodes: true
+                         description: 'Node with which to run the benchmark on the machine'
+                 - string:
+                         name: automation_branch
+                         default: 'master'
+                         description: 'The Ansible logic branch to use'
+         builders:
+                 - shell: |
+                        #!/bin/bash
+                        set -ex
+                        cd ${WORKSPACE}
+                        eval `ssh-agent`
+                        ssh-add
+
+                        case ${node} in
+                        d03*)
+                            vendor='huawei'
+                            node_type=d03
+                            machine_type=aarch64
+                            ;;
+                        d05*)
+                            vendor='huawei'
+                            node_type=d05
+                            machine_type=aarch64
+                            ;;
+                        qdf*)
+                            vendor='qualcomm'
+                            node_type=qdf
+                            machine_type=aarch64
+                            ;;
+                        tx*)
+                            vendor='cavium'
+                            node_type=tx2
+                            machine_type=aarch64
+                            ;;
+                        x86*)
+                            vendor='intel'
+                            node_type=x86
+                            machine_type=x86_64
+                            ;;
+                        esac
+
+                        if [ -d "${WORKSPACE}/hpc_lab_setup" ]; then
+                            rm -rf "${WORKSPACE}/hpc_lab_setup"
+                        fi
+                        git clone -b ${automation_branch} https://github.com/Linaro/hpc_lab_setup.git "${WORKSPACE}/hpc_lab_setup"
+
+                        if [ -d "${WORKSPACE}/mr-provisioner-client" ]; then
+                            rm -rf "${WORKSPACE}/mr-provisioner-client"
+                        fi
+                        git clone https://github.com/Linaro/mr-provisioner-client.git "${WORKSPACE}/mr-provisioner-client"
+
+                        machine_ip=$( "${WORKSPACE}/mr-provisioner-client/mrp_client.py" --mrp-token=$(cat "/home/${NODE_NAME}/mrp_token") --mrp-url="http://10.40.0.11:5000" net --action getip --machine "${node_type}bench" --interface eth1)
+
+                        cat << EOF > "${WORKSPACE}/hosts"
+                        [target]
+                        ${machine_ip} ansible_user=root
+                        EOF
+
+                        cat << EOF > tensorflow_build.yml
+                        build_id: ${BUILD_NUMBER}
+                        EOF
+
+                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v "${WORKSPACE}/hpc_lab_setup/files/ansible/install_python3.yml" -i "${WORKSPACE}/hosts"
+                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v "${WORKSPACE}/hpc_lab_setup/files/ansible/build_tensorflow.yml" -i "${WORKSPACE}/hosts"  --extra-vars="@${WORKSPACE}/tensorflow_build.yml"
+                        ssh-agent -k 

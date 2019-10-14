@@ -14,6 +14,7 @@
           - ohpc_test_suite
           - cluster_provision
           - deploy_mtt
+          - build_tensorflow
 
 - name: Copy yaml view definition(s)
   copy:
@@ -37,3 +38,4 @@
           - ohpc_view
           - provisioning_view
           - deploy_mtt
+          - build_tensorflow

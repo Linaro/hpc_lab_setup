@@ -1,0 +1,9 @@
+---
+# Fetch the benchmarks for TF here
+- name: Get Hello World Python Script on target
+  template:
+          src: tensorflow_helloworld.py.j2
+          dest: "{{ dir_home }}/tensorflow_helloworld.py" 
+          mode: 0755
+          owner: "{{ user }}"
+          group: "{{ user }}"

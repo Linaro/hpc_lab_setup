@@ -1,0 +1,10 @@
+---
+# Run the benchmarks here
+# Also, might be interesting to run NumPy testsuite/benchmarks
+- name: Run Hello World Script
+  shell: "source {{ venv_path }}/bin/activate && {{ dir_home }}/tensorflow_helloworld.py"
+  args:
+          chdir: "{{ dir_home }}"
+          executable: "/bin/bash"
+  register: tensorflow_helloworld_log
+- debug: var=tensorflow_helloworld_log

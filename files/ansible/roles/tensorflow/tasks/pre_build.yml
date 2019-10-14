@@ -1,0 +1,73 @@
+---
+- name: Install dependencies
+  yum:
+          name: "{{ tf_build_dependencies }}"
+          state: latest
+
+- name: Test if OpenHPC is enabled
+  yum:
+          list: "ohpc-release"
+  register: is_ohpc_enabled
+
+- name: Enable OpenHPC if not already done
+  yum:
+          name: "{{ ohpc_release_url }}"
+  when: "'Error: No matching Packages to list' not in is_ohpc_enabled"
+
+- name: Install OpenHPC dependencies
+  yum:
+          name: "{{ tf_build_ohpc_dependencies }}"
+          state: latest
+
+- name: Install Java 8 OpenJDK
+  yum:
+          name: "{{ tf_build_java8 }}"
+          state: latest
+
+- name: Make sure ldconfig knows about ohpc toolchain
+  template:
+          src: ld.so.conf_ohpc.j2
+          dest: /etc/ld.so.conf.d/ohpc.conf
+          owner: root
+          group: root
+          mode: 0644
+
+- name: Make sure ldconfig picks it up
+  shell: "ldconfig -v"
+
+- name: Make sure wheel is NOPASS
+  template:
+          src: sudoers.j2
+          dest: /etc/sudoers
+          validate: "visudo -cf %s"
+          owner: root
+          group: root
+          mode: 0440
+
+- name: Create builder user
+  user:
+          name: builder
+          shell: /bin/bash
+          groups: wheel
+          append: yes
+
+- name: bashrc for builder with lmod
+  template:
+          src: bashrc_builder.j2
+          dest: /home/builder/.bashrc
+          mode: 0644
+          owner: builder
+          group: builder
+
+- name: Create build dirs
+  file:
+          path: "{{ item }}"
+          state: directory
+          mode: '0755'
+          owner: builder
+          group: builder
+  with_items:
+          - "{{ dir_root }}"
+          - "{{ dir_home }}"
+          - "{{ dir_repo }}"
+          - "{{ dir_built }}"

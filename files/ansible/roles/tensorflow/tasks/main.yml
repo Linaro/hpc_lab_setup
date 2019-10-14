@@ -1,0 +1,52 @@
+---
+- name: Install dependencies
+  import_tasks: pre_build.yml
+
+- name: Install python3 dependencies
+  import_tasks: pre_build_venv.yml
+  become: yes
+  become_user: "{{ user }}"
+  become_method: su
+  become_flags: "-s /bin/bash"
+
+- name: Make sure env is good
+  import_tasks: pre_build_test.yml
+  become: yes
+  become_user: "{{ user }}"
+  become_method: su
+  become_flags: "-s /bin/bash"
+
+- name: Build Bazel
+  import_tasks: build_bazel.yml
+  become: yes
+  become_user: "{{ user }}"
+  become_method: su
+  become_flags: "-s /bin/bash"
+
+- name: Build numpy
+  import_tasks: build_numpy.yml
+  become: yes
+  become_user: "{{ user }}"
+  become_method: su
+  become_flags: "-s /bin/bash"
+
+- name: Build tensorflow
+  import_tasks: build_tensorflow.yml
+  become: yes
+  become_user: "{{ user }}"
+  become_method: su
+  become_flags: "-s /bin/bash"
+
+- name: Pre tests
+  import_tasks: pre_test.yml
+  become: yes
+  become_user: "{{ user }}"
+  become_method: su
+  become_flags: "-s /bin/bash"
+
+- name: Test tensorflow
+  import_tasks: test_tensorflow.yml
+  become: yes
+  become_user: "{{ user }}"
+  become_method: su
+  become_flags: "-s /bin/bash"
