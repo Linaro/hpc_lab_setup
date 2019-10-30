@@ -21,6 +21,7 @@
           src: "{{ tensorflow_dir_base }}/{{ tensorflow.release_zip }}"
           remote_src: yes
           dest: "{{ tensorflow_dir_base }}"
+  no_log: true
 
 - name: Get the tensorflow configure scipt
   template:

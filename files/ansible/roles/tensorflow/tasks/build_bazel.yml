@@ -30,6 +30,7 @@
           src: "{{ bazel_dir_base }}/{{ bazel.release_zip }}"
           remote_src: yes
           dest: "{{ bazel_dir_src }}"
+  no_log: true
 
 - name: Build bazel
   shell: "EXTRA_BAZEL_ARGS='--host_javabase=@local_jdk//:jdk' ./compile.sh"
