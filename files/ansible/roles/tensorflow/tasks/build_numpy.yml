@@ -22,6 +22,7 @@
           src: "{{ numpy_dir_base }}/{{ numpy.release_zip }}"
           remote_src: yes
           dest: "{{ numpy_dir_base }}"
+  no_log: true
 
 - name: Make sure numpy hooks up to environment
   template:

@@ -24,6 +24,7 @@
   template:
           src: "bazel.spec.j2"
           dest: "{{ bazel_dir_src }}"
+  no_log: true
 
 - name: Build bazel
   shell: "rpmbuild -ba {{ bazel_dir_src }}/bazel.spec"
