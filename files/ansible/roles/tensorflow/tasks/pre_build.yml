@@ -26,7 +26,7 @@
 
 - name: Put in Java env sourcing
   template:
-          name: javaenv.sh.j2
+          src: javaenv.sh.j2
           dest: /etc/profile.d/javaenv.sh
           mode: 0755 
 
@@ -64,6 +64,14 @@
           mode: 0644
           owner: builder
           group: builder
+
+- name: java source paths 
+  template:
+          src: java.sh.j2
+          dest: /etc/profile.d/java.sh
+          mode: 0644
+          owner: root
+          group: root
 
 - name: Create build dirs
   file:
