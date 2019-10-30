@@ -95,8 +95,8 @@ tf_build_ohpc_dependencies:
         - lmod-defaults-gnu8-openmpi3-ohpc
 
 tf_build_java8:
-        - java-1.8.0-openjdk
-        - java-1.8.0-openjdk-devel
+        - java-11-openjdk
+        - java-11-openjdk-devel
 
 tf_build_py3_dependencies:
         - pip
