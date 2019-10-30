@@ -55,6 +55,7 @@
           name: "{{ numpy.wheel }}"
           virtualenv: "{{ venv_path }}"
   register: numpy_install_log
+  no_log: true
 - debug: var=numpy_install_log
 
 - name: Tar-up numpy output

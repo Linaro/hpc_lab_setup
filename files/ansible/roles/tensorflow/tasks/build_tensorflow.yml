@@ -69,6 +69,7 @@
           chdir: "{{ tensorflow_dir_src }}"
           executable: "/bin/bash"
   register: tensorflow_build_log
+  no_log: true
 - debug: var=tensorflow_build_log
 
 - name: Build tensorflow package

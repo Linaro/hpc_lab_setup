@@ -38,6 +38,7 @@
           chdir: "{{ bazel_dir_src }}"
           executable: "/bin/bash"
   register: bazel_build_log
+  no_log: true
 - debug: var=bazel_build_log
 
 - name: Tar-up bazel output
