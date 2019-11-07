@@ -19,10 +19,16 @@
           name: "{{ tf_build_ohpc_dependencies }}"
           state: latest
 
-- name: Install Java 8 OpenJDK
+- name: Install Java 11 OpenJDK
   yum:
           name: "{{ tf_build_java8 }}"
           state: latest
+
+- name: Put in Java env sourcing
+  template:
+          name: javaenv.sh.j2
+          dest: /etc/profile.d/javaenv.sh
+          mode: 0755 
 
 - name: Make sure ldconfig knows about ohpc toolchain
   template:
