@@ -1,0 +1,16 @@
+---
+- name: Get the bazel_repo file for yum
+  template:
+          src: bazel.repo.j2
+          dest: /etc/yum.repos.d/bazel.repo
+
+- name: Clean yum cache
+  shell: "yum clean all"
+
+- name: Repopulate yum cache
+  shell: "yum makecache"
+
+- name: Install bazel from the repo
+  yum:
+          name: bazel-{{ bazel_version }}
+          state: present

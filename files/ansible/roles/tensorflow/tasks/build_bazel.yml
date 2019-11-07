@@ -20,39 +20,25 @@
           - "{{ bazel_dir_src }}"
           - "{{ bazel_dir_output }}"
 
-- name: Fetch bazel release tarball
-  get_url:
-          url: "{{ bazel.release_url }}"
-          dest: "{{ bazel_dir_base }}"
-
-- name: Unzip the release
-  unarchive:
-          src: "{{ bazel_dir_base }}/{{ bazel.release_zip }}"
-          remote_src: yes
-          dest: "{{ bazel_dir_src }}"
+- name: Fetch rpm spec for bazel
+  template:
+          src: "bazel.spec.j2"
+          dest: "{{ bazel_dir_src }}/bazel.spec"
+          owner: "{{ user }}"
+          group: "{{ user }}"
 
 - name: Build bazel
-  shell: "EXTRA_BAZEL_ARGS='--host_javabase=@local_jdk//:jdk' ./compile.sh"
+  shell: "ml unload ohpc && rpmbuild -ba {{ bazel_dir_src }}/bazel.spec"
   args:
           chdir: "{{ bazel_dir_src }}"
           executable: "/bin/bash"
   register: bazel_build_log
 - debug: var=bazel_build_log
 
-- name: Tar-up bazel output
-  archive:
-          path: "{{ bazel_dir_output }}"
-          dest: "{{ dir_built }}/{{ bazel.built_tarball }}"
-          format: gz
-
 - name: Install bazel
-  copy:
-          src: "{{ bazel.binary }}"
-          remote_src: yes
-          dest: "/usr/local/bin"
-          owner: root
-          group: root
-          mode: '0755'
+  yum:
+          name: "{{ bazel_rpm }}"
+          state: present
   become: yes
   become_user: root
   become_method: sudo

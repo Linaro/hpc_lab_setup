@@ -102,5 +102,6 @@
                         build_id: ${BUILD_NUMBER}
                         EOF
 
+                        ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v "${WORKSPACE}/hpc_lab_setup/files/ansible/install_python3.yml" -i "${WORKSPACE}/hosts"
                         ANSIBLE_CONFIG="${WORKSPACE}/hpc_lab_setup/files/ansible/ansible.cfg" ansible-playbook -v "${WORKSPACE}/hpc_lab_setup/files/ansible/build_tensorflow.yml" -i "${WORKSPACE}/hosts"  --extra-vars="@${WORKSPACE}/tensorflow_build.yml"
                         ssh-agent -k 

@@ -22,6 +22,11 @@
   become_user: "{{ user }}"
   become_method: su
   become_flags: "-s /bin/bash"
+  when: build_bazel == true
+
+- name: Install Bazel (no build)
+  import_tasks: install_bazel.yml
+  when: build_bazel == false
 
 - name: Build numpy
   import_tasks: build_numpy.yml
