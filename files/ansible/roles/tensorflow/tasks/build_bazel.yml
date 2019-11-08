@@ -28,7 +28,7 @@
           group: "{{ user }}"
 
 - name: Build bazel
-  shell: "rpmbuild -ba {{ bazel_dir_src }}/bazel.spec"
+  shell: "ml unload ohpc && rpmbuild -ba {{ bazel_dir_src }}/bazel.spec"
   args:
           chdir: "{{ bazel_dir_src }}"
           executable: "/bin/bash"
