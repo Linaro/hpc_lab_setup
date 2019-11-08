@@ -2,7 +2,7 @@
 - name: Get the bazel_repo file for yum
   template:
           src: bazel.repo.j2
-          dest: /etc/yum.repo.d/bazel.repo
+          dest: /etc/yum.repos.d/bazel.repo
 
 - name: Install bazel from the repo
   yum:
