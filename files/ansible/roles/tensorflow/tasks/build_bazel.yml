@@ -23,8 +23,9 @@
 - name: Fetch rpm spec for bazel
   template:
           src: "bazel.spec.j2"
-          dest: "{{ bazel_dir_src }}"
-  no_log: true
+          dest: "{{ bazel_dir_src }}/bazel.spec"
+          owner: "{{ user }}"
+          group: "{{ user }}"
 
 - name: Build bazel
   shell: "rpmbuild -ba {{ bazel_dir_src }}/bazel.spec"
