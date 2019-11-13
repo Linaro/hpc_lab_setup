@@ -33,7 +33,7 @@
   template:
           src: "{{ numpy.patch }}.j2"
           dest: "{{ numpy_dir_src }}/{{ numpy.patch }}"
-  when: "{{ numpy.patching_required }}"
+  when: numpy.patching_required == true 
 
 - name: Apply patch
   shell: "patch -p0 -i {{ numpy_dir_src }}/{{ numpy.patch }}"
