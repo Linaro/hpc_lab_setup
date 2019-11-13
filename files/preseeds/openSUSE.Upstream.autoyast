@@ -23,6 +23,7 @@
     </patterns>
     <packages config:type="list">
       <package>perf</package>
+      <package>vim</package>
       <package>zypper-aptitude</package>
     </packages>
   </software>

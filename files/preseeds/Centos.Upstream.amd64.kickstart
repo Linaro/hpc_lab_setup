@@ -41,6 +41,7 @@ reboot
 chrony
 kexec-tools
 git
+vim
 
 %end
 
