@@ -23,10 +23,10 @@ numpy_dir_base: "{{ dir_home }}/numpy/{{ numpy_version}}"
 numpy_dir_src: "{{ numpy_dir_base }}/numpy-{{ numpy_version }}"
 numpy_dir_output: "{{ numpy_dir_src }}/dist"
 numpy:
-       release_url: "https://github.com/numpy/numpy/releases/download/v1.17.3/numpy-1.17.3.zip"
-       release_zip: "numpy-1.17.3.zip"
+       release_url: "https://github.com/numpy/numpy/releases/download/v{{ numpy_version }}/numpy-{{ numpy_version }}.zip"
+       release_zip: "numpy-{{ numpy_version }}.zip"
        release_sha256: "a0678793096205a4d784bd99f32803ba8100f639cf3b932dc63b21621390ea7e"
-       wheel: "{{ numpy_dir_output }}/numpy-1.17.3-cp36-cp36m-linux_aarch64.whl"
+       wheel: "{{ numpy_dir_output }}/numpy-{{ numpy_version }}-cp36-cp36m-linux_aarch64.whl"
        patching_required: true
        patch: 'numpy_centos7_aarch64.patch'
        built_tarball: "numpy_{{ numpy_version }}_{{ build_id }}.tar.gz"
@@ -38,9 +38,9 @@ tensorflow_dir_src: "{{ tensorflow_dir_base }}/tensorflow-{{ tensorflow_version 
 tensorflow_configure: "{{ tensorflow_dir_src }}/configure"
 tensorflow_dir_output: "/tmp/tensorflow_pkg"
 tensorflow:
-       release_url: "https://github.com/tensorflow/tensorflow/archive/v1.15.0.zip"
-       release_zip: "tensorflow-1.15.0.zip"
-       wheel: "{{ tensorflow_dir_output }}/tensorflow-1.15.0-cp36-cp36m-linux_aarch64.whl"
+       release_url: "https://github.com/tensorflow/tensorflow/archive/v{{ tensorflow_version }}.zip"
+       release_zip: "tensorflow-{{ tensorflow_version }}.zip"
+       wheel: "{{ tensorflow_dir_output }}/tensorflow-{{ tensorflow_version }}-cp36-cp36m-linux_{{ arch }}.whl"
        patching_required: true
        patch: 'patch_bazelbuild.patch'
        built_tarball: "tensorflow_{{ tensorflow_version }}_{{ build_id }}.tar.gz"
@@ -59,8 +59,8 @@ bazel_dir_base: "{{ dir_home }}/bazel"
 bazel_dir_src: "{{ bazel_dir_base }}/{{ bazel_version}}"
 bazel_dir_output: "{{ bazel_dir_src }}/output"
 bazel:
-       release_url: "https://github.com/bazelbuild/bazel/releases/download/0.24.1/bazel-0.24.1-dist.zip"
-       release_zip: "bazel-0.24.1-dist.zip"
+       release_url: "https://github.com/bazelbuild/bazel/releases/download/{{ bazel_version }}/bazel-{{ bazel_version }}-dist.zip"
+       release_zip: "bazel-{{ bazel_version }}-dist.zip"
        binary: "{{ bazel_dir_output }}/bazel"
        patching_required: false
        built_tarball: "bazel_{{ bazel_version }}_{{ build_id }}.tar.gz"
