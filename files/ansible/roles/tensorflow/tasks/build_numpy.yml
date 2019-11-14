@@ -15,7 +15,6 @@
   get_url:
           url: "{{ numpy.release_url }}"
           dest: "{{ numpy_dir_base }}"
-          checksum: "sha256:{{ numpy.release_sha256 }}"
 
 - name: Unzip the release
   unarchive:
