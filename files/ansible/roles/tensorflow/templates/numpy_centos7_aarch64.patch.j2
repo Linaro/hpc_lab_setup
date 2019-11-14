@@ -1,3 +1,4 @@
+{% if numpy_version in ['1.17.3', '1.17.4'] %}
 --- numpy/core/src/npymath/npy_math_complex.c.src.orig	2019-10-07 14:22:00.073904595 +0100
 +++ numpy/core/src/npymath/npy_math_complex.c.src	2019-10-07 14:22:11.185036951 +0100
 @@ -1385,7 +1385,7 @@
@@ -9,3 +10,16 @@
  npy_cacosh@c@(@ctype@ z)
  {
      /*
+{% elif numpy_version in ['1.17.4'] %}
+--- numpy/core/src/npymath/npy_math_internal.h.src.orig	2019-11-14 12:20:01.387180922 +0000
++++ numpy/core/src/npymath/npy_math_internal.h.src	2019-11-14 12:19:17.960646234 +0000
+@@ -477,7 +477,7 @@
+  * #KIND = ATAN2,HYPOT,POW,FMOD,COPYSIGN#
+  */
+ #ifdef HAVE_@KIND@@C@
+-NPY_INPLACE @type@ npy_@kind@@c@(@type@ x, @type@ y)
++NPY_INPLACE __attribute__((optimize("-O0"))) @type@ npy_@kind@@c@(@type@ x, @type@ y)
+ {
+     return @kind@@c@(x, y);
+ }
+{% endif %}
