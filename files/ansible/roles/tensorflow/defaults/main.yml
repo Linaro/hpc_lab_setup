@@ -18,7 +18,7 @@ dir_rpmbuilt: "/home/{{ user }}/rpmbuild/RPMS/{{ arch }}"
 # NumPy variables
 # See : https://github.com/ansible/ansible/issues/8603 
 # (No it's not "resolved", it's "bad design we can't fix")
-numpy_version: "1.17.3"
+numpy_version: "1.17.4"
 numpy_dir_base: "{{ dir_home }}/numpy/{{ numpy_version}}"
 numpy_dir_src: "{{ numpy_dir_base }}/numpy-{{ numpy_version }}"
 numpy_dir_output: "{{ numpy_dir_src }}/dist"
