@@ -1,3 +1,18 @@
 ---
 # Run the benchmarks here
 # Also, might be interesting to run NumPy testsuite/benchmarks
+- name: Get script on target machine
+  template:
+          src: tensorflow_helloworld.py.j2
+          dest: "{{ dir_home }}/tensorflow_helloworld.py"
+          mode: 0755
+          owner: "{{ user }}"
+          group: "{{ user }}"
+
+- name: Run Hello World Script
+  shell: "source {{ venv_path }}/bin/activate && {{ dir_home }}/tensorflow_helloworld.py"
+  args:
+          chdir: "{{ dir_home }}"
+          executable: "/bin/bash"
+  register: tensorflow_helloworld_log
+
